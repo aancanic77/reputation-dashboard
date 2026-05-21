@@ -341,3 +341,10 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
 #floating-help-btn:hover {
     transform: scale(1.05);
 }
+/* Asigură-te că butoanele din dialog sunt vizibile */
+.stDialog button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
