@@ -8,25 +8,19 @@ import pandas as pd
 # ============================================================
 #  GUIDE ASSISTANT HELPER
 # ============================================================
-def app_guide_answer(question: str) -> str:
-    q = question.lower()
-
+def app_guide_answer(topic: str) -> str:
     guides = {
-        "dashboard": "📊 **Dashboard** shows sentiment analysis across 3 ML models (Logistic Regression, VADER, Transformer).",
-        "logistic regression": "🤖 **Logistic Regression (3-class)** is a balanced ML model using TF-IDF vectors.",
-        "vader": "⚖️ **VADER** is a rule-based sentiment analyzer optimized for social media.",
-        "transformer": "🧠 **Transformer model** (DistilBERT) provides deeper contextual sentiment understanding.",
-        "live pipeline": "🔄 **Live Pipeline** demos the full ETL: Collect → Extract → Map → Analyze → Result.",
-        "proof of source": "📁 **Proof of Source** shows real Reddit comments behind each metric.",
-        "ai insights": "💡 **AI Insights** uses LLMs to generate marketing intelligence.",
-        "help": "👋 Ask me about Dashboard, Logistic Regression, VADER, Transformer, Live Pipeline, Proof of Source, or AI Insights.",
+        "Dashboard": "📊 Dashboard shows sentiment analysis across 3 ML models.",
+        "Logistic Regression": "🤖 Logistic Regression (3-class) uses TF-IDF vectors.",
+        "VADER": "⚖️ VADER is a rule-based sentiment analyzer optimized for social media.",
+        "Transformer": "🧠 Transformer (DistilBERT) provides contextual sentiment understanding.",
+        "Live Pipeline": "🔄 Live Pipeline shows the full ETL: Collect → Extract → Map → Analyze → Result.",
+        "Proof of Source": "📁 Proof of Source displays real Reddit comments behind each metric.",
+        "AI Insights": "💡 AI Insights uses LLMs to generate marketing intelligence.",
     }
 
-    for key, answer in guides.items():
-        if key in q:
-            return answer
+    return guides.get(topic, "❓ Subiect necunoscut.")
 
-    return "❓ I didn't find that topic. Try asking about: Dashboard, Logistic Regression, VADER, Transformer, Live Pipeline, Proof of Source, or AI Insights."
 
 
 # ============================================================
@@ -128,26 +122,27 @@ def help_dialog():
     st.markdown("""
     ### Cum te pot ajuta?
 
-    Îți pot explica următoarele secțiuni ale aplicației:
-
-    - Dashboard  
-    - Logistic Regression  
-    - VADER  
-    - Transformer  
-    - Live Pipeline  
-    - Proof of Source  
-    - AI Insights  
-
-    Scrie mai jos ce vrei să afli.
+    Alege un subiect despre care vrei explicații:
     """)
 
-    q = st.text_input("Întrebare", key="help_question_input")
+    topic = st.selectbox(
+        "Alege un subiect",
+        [
+            "Dashboard",
+            "Logistic Regression",
+            "VADER",
+            "Transformer",
+            "Live Pipeline",
+            "Proof of Source",
+            "AI Insights",
+        ],
+        key="help_topic_select"
+    )
 
     if st.button("Trimite", key="help_send_btn", type="primary"):
-        answer = app_guide_answer(q)
-        #if lang == "RO":
-            #answer = translate_to_ro(answer)
+        answer = app_guide_answer(topic)
         st.markdown(f"### Răspuns\n{answer}")
+
 
 
 # ============================================================
