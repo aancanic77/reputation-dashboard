@@ -19,6 +19,22 @@ STATUS_COLORS = {
     "Error": "#DC2626",
 }
 
+# ============================================================
+# CACHE FUNCTIONS — trebuie să fie AICI, în afara render_tab4
+# ============================================================
+
+@st.cache_data(show_spinner=False)
+def cached_logreg(text):
+    return predict_logreg(text)["label"]
+
+@st.cache_data(show_spinner=False)
+def cached_vader(text):
+    return predict_vader(text)["label"]
+
+@st.cache_data(show_spinner=False)
+def cached_transformer(text):
+    return predict_transformer(text)["label"]
+
 
 def time_ago(ts):
     try:
@@ -180,17 +196,18 @@ def render_tab4(rows_slider: int, lang: str):
     update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Running")
     progress.progress(70)
 
-    mapped_df["lr_label"] = mapped_df["text"].apply(lambda t: predict_logreg(t)["label"])
-    mapped_df["vader_label"] = mapped_df["text"].apply(lambda t: predict_vader(t)["label"])
+    mapped_df["lr_label"] = mapped_df["text"].apply(cached_logreg)
+    mapped_df["vader_label"] = mapped_df["text"].apply(cached_vader)
 
     if DEMO_MODE:
         mapped_df["dl_label"] = "disabled"
     else:
-        mapped_df["dl_label"] = mapped_df["text"].apply(lambda t: predict_transformer(t)["label"])
+        mapped_df["dl_label"] = mapped_df["text"].apply(cached_transformer)
 
     update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Completed")
     progress.progress(85)
-    
+
+    # DEBUG
     st.subheader("DEBUG — Structura mapped_df")
     st.write("Coloane:", list(mapped_df.columns))
     st.write(mapped_df.head())
@@ -201,29 +218,26 @@ def render_tab4(rows_slider: int, lang: str):
     steps[4]["status"] = "Running"
     update_step(placeholders[4], **steps[4])
     progress.progress(95)
-    
+
     try:
         final_df = mapped_df.copy()
-    
-        # conversie timp
+
         final_df["created_at"] = pd.to_datetime(
             final_df["created_utc"], unit="s", errors="coerce"
         ).dt.strftime("%Y-%m-%d %H:%M:%S")
-    
+
         final_df["time_ago"] = final_df["created_utc"].apply(time_ago)
-    
-        # succes
+
         steps[4]["status"] = "Completed"
         update_step(placeholders[4], **steps[4])
         progress.progress(100)
-    
+
     except Exception as e:
         steps[4]["status"] = "Error"
         update_step(placeholders[4], **steps[4])
         st.error("A apărut o eroare în etapa finală a pipeline-ului.")
         st.exception(e)
         return
-
 
     # ============================
     # RESULTS
@@ -238,7 +252,7 @@ def render_tab4(rows_slider: int, lang: str):
                 t("tab4_models_value_default", lang) if not DEMO_MODE else t("tab4_models_value_demo", lang))
 
     # ============================
-    # CHARTS (LIMITATE)
+    # CHARTS
     # ============================
     st.markdown(f"### {t('tab4_comments_over_time', lang)}")
 
@@ -256,7 +270,7 @@ def render_tab4(rows_slider: int, lang: str):
     st.bar_chart(final_df["company"].value_counts())
 
     # ============================
-    # SAMPLE COMMENTS (LIMITATE)
+    # SAMPLE COMMENTS
     # ============================
     st.markdown(f"### {t('tab4_sample_comments', lang)}")
 
@@ -269,7 +283,7 @@ def render_tab4(rows_slider: int, lang: str):
     st.dataframe(final_df[preview_cols].head(10), use_container_width=True, hide_index=True)
 
     # ============================
-    # DISTRIBUȚII (LIMITATE)
+    # DISTRIBUȚII
     # ============================
     st.markdown(f"### {t('tab4_sentiment_distribution', lang)}")
 
