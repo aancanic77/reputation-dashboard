@@ -1,5 +1,5 @@
 # ============================================================
-# sentiment_models.py — versiunea finală completă
+# sentiment_models.py — versiunea finală cu MOCK TRANSFORMER
 # Compatibil 100% cu tab3_interactive_demo.py
 # Fără Torch, fără Transformers, fără modele mari
 # ============================================================
@@ -92,6 +92,30 @@ def predict_vader(text):
         "compound": compound,
         "tokens": tokens,
         "scores": scores,
+    }
+
+
+# ============================================================
+# MOCK TRANSFORMER (fără Torch, fără Transformers)
+# ============================================================
+def predict_transformer(text: str) -> Dict:
+    tokens = text.split()
+    n = len(tokens)
+
+    # atenție mock: matrice NxN cu valori random mici
+    attention = np.random.rand(n, n) * 0.1
+
+    # scor mock
+    score = 0.5
+
+    # etichetă mock
+    label = "neutral"
+
+    return {
+        "label": label,
+        "score": score,
+        "tokens": tokens,
+        "attention": attention,
     }
 
 
