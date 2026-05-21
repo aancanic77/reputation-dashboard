@@ -14,18 +14,17 @@ def render_sidebar() -> dict:
     st.sidebar.title(t("sidebar_title", lang))
 
     # ============================
-    # SELECTOR LIMBĂ (fără rerun automat)
+    # SELECTOR LIMBĂ
     # ============================
     new_lang = st.sidebar.radio(
         t("sidebar_language_selector", lang),
         ["RO", "EN"],
         key="lang",
     )
-
     lang = new_lang
 
     # ============================
-    # METODĂ SENTIMENT (fără on_change)
+    # METODĂ SENTIMENT
     # ============================
     method = st.sidebar.radio(
         t("sidebar_method", new_lang),
@@ -39,7 +38,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # COMPANIE (fără on_change)
+    # COMPANIE
     # ============================
     company = st.sidebar.selectbox(
         t("sidebar_company", new_lang),
@@ -49,7 +48,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # NUMĂR RÂNDURI (fără on_change)
+    # NUMĂR RÂNDURI
     # ============================
     rows_slider = st.sidebar.slider(
         t("sidebar_rows_slider", new_lang),
@@ -71,16 +70,28 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # BUTON REFRESH (singurul care rerulează)
+    # BUTON REFRESH
     # ============================
     refresh = st.sidebar.button(
         t("sidebar_refresh", new_lang),
         type="primary"
     )
 
+    # ============================
+    # HELP BUTTON (INTEGRAT AICI)
+    # ============================
     st.sidebar.markdown("---")
+    if st.sidebar.button("💬 Help", key="help_btn_sidebar"):
+        st.session_state.help_open = True
+
+    # ============================
+    # CAPTION
+    # ============================
     st.sidebar.caption(t("sidebar_caption", new_lang))
 
+    # ============================
+    # RETURN VALUES
+    # ============================
     return {
         "dashboard_method": method,
         "company_filter": company,
