@@ -6,6 +6,9 @@ from translations import t
 def render_sidebar() -> dict:
     render_base_styles()
 
+    # ============================
+    # LIMBA CURENTĂ
+    # ============================
     lang = st.session_state.get("lang", "RO")
 
     # ============================
@@ -27,7 +30,7 @@ def render_sidebar() -> dict:
     # METODĂ SENTIMENT
     # ============================
     method = st.sidebar.radio(
-        t("sidebar_method", new_lang),
+        t("sidebar_method", lang),
         [
             "Logistic Regression 3-class balanced",
             "VADER",
@@ -38,20 +41,20 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # COMPANIE
+    # SELECTOR COMPANIE
     # ============================
     company = st.sidebar.selectbox(
-        t("sidebar_company", new_lang),
+        t("sidebar_company", lang),
         ["All", "Apple", "Google", "Samsung"],
         index=0,
         key="company_filter",
     )
 
     # ============================
-    # NUMĂR RÂNDURI
+    # SLIDER NUMĂR RÂNDURI
     # ============================
     rows_slider = st.sidebar.slider(
-        t("sidebar_rows_slider", new_lang),
+        t("sidebar_rows_slider", lang),
         min_value=10,
         max_value=200,
         value=50,
@@ -59,10 +62,10 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # LIMITĂ RÂNDURI TABEL DISPUTE
+    # SLIDER LIMITĂ RÂNDURI DISPUTE
     # ============================
     dashboard_limit_rows = st.sidebar.slider(
-        t("sidebar_limit_rows", new_lang),
+        t("sidebar_limit_rows", lang),
         min_value=20,
         max_value=500,
         value=50,
@@ -73,12 +76,12 @@ def render_sidebar() -> dict:
     # BUTON REFRESH
     # ============================
     refresh = st.sidebar.button(
-        t("sidebar_refresh", new_lang),
+        t("sidebar_refresh", lang),
         type="primary"
     )
 
     # ============================
-    # HELP BUTTON — FIX FINAL
+    # HELP BUTTON — AICI ESTE LOCUL CORECT
     # ============================
     st.sidebar.markdown("---")
     if st.sidebar.button("💬 Help", key="help_btn_sidebar"):
@@ -87,7 +90,7 @@ def render_sidebar() -> dict:
     # ============================
     # CAPTION
     # ============================
-    st.sidebar.caption(t("sidebar_caption", new_lang))
+    st.sidebar.caption(t("sidebar_caption", lang))
 
     # ============================
     # RETURN VALUES
@@ -98,5 +101,5 @@ def render_sidebar() -> dict:
         "rows_slider": rows_slider,
         "dashboard_limit_rows": dashboard_limit_rows,
         "dashboard_refresh": refresh,
-        "lang": new_lang,
+        "lang": lang,
     }
