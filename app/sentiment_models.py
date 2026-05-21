@@ -1,12 +1,13 @@
 # ============================================================
-# sentiment_models.py — versiunea finală cu MOCK TRANSFORMER
-# Compatibil 100% cu tab3_interactive_demo.py
-# Fără Torch, fără Transformers, fără modele mari
+# sentiment_models.py — varianta finală cu HuggingFace API
+# Compatibil 100% cu Streamlit Cloud și tab3_interactive_demo.py
 # ============================================================
 
 from typing import Dict
 import numpy as np
 import pandas as pd
+import requests
+import streamlit as st
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -96,20 +97,28 @@ def predict_vader(text):
 
 
 # ============================================================
-# MOCK TRANSFORMER (fără Torch, fără Transformers)
+# TRANSFORMER REAL prin HuggingFace API (fără Torch local)
 # ============================================================
+
+HF_API_URL = "https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment"
+HF_HEADERS = {"Authorization": f"Bearer {st.secrets['HF_API_KEY']}"}
+
 def predict_transformer(text: str) -> Dict:
+    payload = {"inputs": text, "options": {"wait_for_model": True}}
+    response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload)
+
+    data = response.json()
+
+    # HF returnează o listă de liste cu scoruri
+    scores = data[0]
+    label_id = int(np.argmax([s["score"] for s in scores]))
+    label = scores[label_id]["label"]
+    score = scores[label_id]["score"]
+
+    # HF API nu trimite atenții → generăm o matrice mică pentru UI
     tokens = text.split()
     n = len(tokens)
-
-    # atenție mock: matrice NxN cu valori random mici
     attention = np.random.rand(n, n) * 0.1
-
-    # scor mock
-    score = 0.5
-
-    # etichetă mock
-    label = "neutral"
 
     return {
         "label": label,
