@@ -96,4 +96,6 @@ def load_reddit_dataframe() -> pd.DataFrame:
         ORDER BY m.published_at DESC
     """
     return safe_read_df(sql)
+__all__ = ["load_reddit_dataframe"]
+
 
