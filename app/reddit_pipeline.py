@@ -22,6 +22,11 @@ def internet_is_available() -> bool:
 DEMO_MODE = not internet_is_available()
 
 # ============================================================
+# FLAG GLOBAL — dacă pipeline-ul a folosit fallback
+# ============================================================
+PIPELINE_USED_FALLBACK = False
+
+# ============================================================
 # DEMO MOCK — EXACT 60 comentarii
 # ============================================================
 def generate_demo_mock(n=60):
@@ -45,11 +50,9 @@ def generate_demo_mock(n=60):
 MAX_ROWS_DEMO = 60
 
 def limit_df(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
-    """Limitează dataframe la max_rows (sau MAX_ROWS_DEMO în DEMO_MODE)."""
     if df is None:
         return pd.DataFrame()
     
-    # În DEMO_MODE, limitare hard la 60
     if DEMO_MODE:
         limit = MAX_ROWS_DEMO
     else:
@@ -63,9 +66,11 @@ def limit_df(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
 # FETCH REDDIT COMMENTS
 # ============================================================
 def fetch_reddit_comments(subreddits: List[str], limit: int = 50, max_rows: int = None) -> pd.DataFrame:
+    global PIPELINE_USED_FALLBACK
 
     # DEMO MODE → mock instant
     if DEMO_MODE:
+        PIPELINE_USED_FALLBACK = True
         return generate_demo_mock(MAX_ROWS_DEMO)
 
     rows: List[Dict] = []
@@ -91,9 +96,11 @@ def fetch_reddit_comments(subreddits: List[str], limit: int = 50, max_rows: int 
                 )
 
         except Exception:
-            return fallback_data()
+            PIPELINE_USED_FALLBACK = True
+            return fallback_data(max_rows)
 
     if not rows:
+        PIPELINE_USED_FALLBACK = True
         return fallback_data(max_rows)
 
     return limit_df(pd.DataFrame(rows), max_rows)
@@ -102,15 +109,9 @@ def fetch_reddit_comments(subreddits: List[str], limit: int = 50, max_rows: int 
 # FALLBACK DATA — LIMITARE DOAR ÎN DEMO MODE
 # ============================================================
 def fallback_data(max_rows: int = None) -> pd.DataFrame:
-    """
-    Fallback automat în 3 niveluri:
-    1) DB
-    2) CSV local
-    3) mock local
-    În DEMO_MODE, limitare la 60. Altfel, respectă max_rows.
-    """
+    global PIPELINE_USED_FALLBACK
+    PIPELINE_USED_FALLBACK = True
 
-    # DEMO MODE → mock instant cu 60 rânduri
     if DEMO_MODE:
         return generate_demo_mock(MAX_ROWS_DEMO)
 
@@ -124,7 +125,7 @@ def fallback_data(max_rows: int = None) -> pd.DataFrame:
     except:
         pass
 
-    # 2) CSV fallback — citeste max_rows din fisierul CSV
+    # 2) CSV fallback
     try:
         csv_path = ensure_mock_data()
         csv_limit = max_rows if max_rows else 1000
@@ -169,21 +170,21 @@ def map_to_company(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
 # PIPELINE COMPLET
 # ============================================================
 def run_reddit_pipeline_live(limit_per_sub: int = 20) -> pd.DataFrame:
+    global PIPELINE_USED_FALLBACK
+    PIPELINE_USED_FALLBACK = False
 
     subreddits = ["apple", "google", "samsung"]
-    
-    # În DEMO_MODE, limitare la 60; altfel, respectă slider (3 companii × limit_per_sub)
     max_rows_limit = MAX_ROWS_DEMO if DEMO_MODE else (limit_per_sub * 3)
 
     try:
         raw = fetch_reddit_comments(subreddits, limit_per_sub, max_rows_limit)
     except Exception:
+        PIPELINE_USED_FALLBACK = True
         raw = fallback_data(max_rows_limit)
 
     extracted = extract_fields(raw, max_rows_limit)
     mapped = map_to_company(extracted, max_rows_limit)
 
-    # DEMO MODE — Transformer dezactivat
     if DEMO_MODE:
         mapped["dl_label"] = "disabled"
 
