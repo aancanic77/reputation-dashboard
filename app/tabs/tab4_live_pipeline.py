@@ -36,12 +36,14 @@ def cached_transformer_label(text: str) -> str:
     return predict_transformer(text)["label"]
 
 
+# ============================================================
+# TIME AGO — versiunea robustă (nu mai dă unknown)
+# ============================================================
+
 def time_ago(ts):
     try:
-        # curățăm stringurile
         if isinstance(ts, str):
             ts = ts.strip()
-
         ts = float(ts)
         dt = datetime.fromtimestamp(ts, tz=timezone.utc)
     except Exception:
@@ -60,6 +62,9 @@ def time_ago(ts):
     return f"acum {int(sec // 86400)} zile"
 
 
+# ============================================================
+# UI HELPERS
+# ============================================================
 
 def render_step_card(title: str, description: str, status: str) -> str:
     color = STATUS_COLORS.get(status, "#9CA3AF")
@@ -85,6 +90,10 @@ def update_step(placeholder, title: str, description: str, status: str):
         unsafe_allow_html=True,
     )
 
+
+# ============================================================
+# MAIN TAB FUNCTION
+# ============================================================
 
 def render_tab4(rows_slider: int, lang: str):
 
@@ -255,13 +264,13 @@ def render_tab4(rows_slider: int, lang: str):
     update_step(placeholders[3], **steps[3])
     progress.progress(85)
 
-    # (poți șterge debug-ul după ce ești mulțumită)
+    # DEBUG
     st.subheader("DEBUG — Structura mapped_df")
     st.write("Coloane:", list(mapped_df.columns))
     st.write(mapped_df.head())
 
     # ============================
-    # STEP 5 — RESULT (cu try/except)
+    # STEP 5 — RESULT
     # ============================
     steps[4]["status"] = "Running"
     update_step(placeholders[4], **steps[4])
@@ -341,6 +350,9 @@ def render_tab4(rows_slider: int, lang: str):
     # SAMPLE COMMENTS
     # ============================
     st.markdown(f"### {t('tab4_sample_comments', lang)}")
+
+    # sortăm comentariile după cele mai recente
+    final_df = final_df.sort_values("created_utc", ascending=False)
 
     preview_cols = [
         "company",
