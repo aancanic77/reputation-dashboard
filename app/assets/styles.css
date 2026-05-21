@@ -84,7 +84,6 @@ section[data-testid="stSidebar"] > div {
     box-shadow: none !important;
 }
 
-
 /* HEADER TEXT */
 .app-header__content {
     display: flex;
@@ -254,7 +253,6 @@ body.landing-page section[data-testid="stSidebar"] {
     transform: scale(1.08);
 }
 
-
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -270,15 +268,12 @@ body.landing-page section[data-testid="stSidebar"] {
         text-align: center;
     }
 }
-/* FIX: sidebar must always be above floating elements */
-/* section[data-testid="stSidebar"] {
-    position: relative !important;
-    z-index: 100000 !important;
-} */
+
 section[data-testid="stSidebar"] {
     height: auto !important;
     min-height: 100vh !important;
 }
+
 button[data-testid="stBaseButton-togglebtn"] {
     display: none !important;
 }
@@ -288,105 +283,43 @@ button[data-testid="baseButton-secondary"] {
     display: none !important;
 }
 
- /* ============================================================
-   STREAMLIT BUTTON SAFETY PATCH (DO NOT BREAK UI)
-   ============================================================ */
-/* .stButton > button {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* ensure Streamlit buttons are not collapsed */
-div[data-testid="stButton"] {
-    display: block !important;
-} */
 /* ============================================================
-   BIG PRIMARY ACTION BUTTON (SAFE STREAMLIT STYLE)
+   DIALOG FIX
    ============================================================ */
-/*
-div[data-testid="stButton"] > button[kind="primary"] {
-    background: linear-gradient(90deg, #2563eb, #1d4ed8) !important;
-    color: white !important;
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    padding: 0.9rem 1.2rem !important;
-    border-radius: 14px !important;
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35) !important;
-    transition: all 0.2s ease-in-out;
-}
-
-
-div[data-testid="stButton"] > button[kind="primary"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 34px rgba(37, 99, 235, 0.45) !important;
-}
-*/
-/* Floating Help Button */
-#floating-help-btn {
-    position: fixed;
-    bottom: 22px;
-    right: 22px;
-    background: linear-gradient(135deg, #FF8A00 0%, #FFC300 100%);
-    color: white;
-    padding: 16px 22px;
-    border-radius: 999px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 999999;
-    box-shadow: 0 14px 35px rgba(255, 138, 0, 0.35);
-    transition: transform 0.2s ease;
-}
-
-#floating-help-btn:hover {
-    transform: scale(1.05);
-}
-/* Asigură-te că butoanele din dialog sunt vizibile */
 .stDialog button {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* === FIX: Butoanele din dialog trebuie să fie vizibile === */
-.stDialog button {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* === FIX: Nu ascunde butoanele secondary din dialog === */
 .stDialog button[data-testid="stBaseButton-secondary"] {
     display: inline-flex !important;
 }
+
 /* ============================================================
-   FLOATING HELP BUTTON ONLY
+   FLOATING HELP BUTTON — SAFE VERSION
    ============================================================ */
+.floating-help-wrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999999;
+}
 
-button[kind="primary"][data-testid="baseButton-primary"] {
-    position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    z-index: 999999 !important;
-
+.floating-help-wrapper button {
     width: 64px !important;
     height: 64px !important;
-
     border-radius: 999px !important;
-
     background: linear-gradient(135deg, #FF8A00 0%, #FFC300 100%) !important;
     color: white !important;
-
     font-size: 28px !important;
     font-weight: 700 !important;
-
     border: none !important;
-
     box-shadow: 0 12px 30px rgba(255, 138, 0, 0.35) !important;
-
+    cursor: pointer !important;
     transition: all 0.2s ease !important;
 }
 
-button[kind="primary"][data-testid="baseButton-primary"]:hover {
+.floating-help-wrapper button:hover {
     transform: scale(1.05);
 }
