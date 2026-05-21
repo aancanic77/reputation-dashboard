@@ -304,7 +304,7 @@ div[data-testid="stButton"] {
 /* ============================================================
    BIG PRIMARY ACTION BUTTON (SAFE STREAMLIT STYLE)
    ============================================================ */
-
+/*
 div[data-testid="stButton"] > button[kind="primary"] {
     background: linear-gradient(90deg, #2563eb, #1d4ed8) !important;
     color: white !important;
@@ -316,12 +316,12 @@ div[data-testid="stButton"] > button[kind="primary"] {
     transition: all 0.2s ease-in-out;
 }
 
-/* hover effect */
+
 div[data-testid="stButton"] > button[kind="primary"]:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 34px rgba(37, 99, 235, 0.45) !important;
 }
-
+*/
 /* Floating Help Button */
 #floating-help-btn {
     position: fixed;
