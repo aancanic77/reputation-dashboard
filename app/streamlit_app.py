@@ -154,30 +154,42 @@ def translate_to_ro(text: str) -> str:
     except:
         return text
 
-
 # ============================================================
-#  POPUP DIALOG
+#  POPUP DIALOG — versiunea completă și funcțională
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
     lang = st.session_state.get("lang", "RO")
 
-    st.write("Întreabă-mă orice despre aplicație.")
+    # Text explicativ
+    st.markdown("""
+    ### Cum te pot ajuta?
+    Îți pot explica:
+    - Dashboard  
+    - Logistic Regression  
+    - VADER  
+    - Transformer  
+    - Live Pipeline  
+    - Proof of Source  
+    - AI Insights  
 
-    q = st.text_input("Întrebare")
-    if st.button("Trimite"):
+    Scrie mai jos ce vrei să afli.
+    """)
+
+    # Input
+    q = st.text_input("Întrebare", key="help_question_input")
+
+    # Buton TRIMITE — forțat PRIMARY
+    send = st.button("Trimite", key="help_send_btn", type="primary")
+
+    if send:
         answer = app_guide_answer(q)
 
         if lang == "RO":
             answer = translate_to_ro(answer)
 
-        st.write(answer)
+        st.markdown(f"### Răspuns\n{answer}")
 
-
-# Deschide dialogul dacă help_open = True
-if st.session_state.help_open:
-    help_dialog()
-    st.session_state.help_open = False
 # ============================================================
 #  SIDEBAR CONTROLS (conditionally visible)
 # ============================================================
