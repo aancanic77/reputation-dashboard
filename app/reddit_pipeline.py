@@ -3,13 +3,15 @@ import pandas as pd
 from typing import List, Dict
 from utils import load_reddit_dataframe, ensure_mock_data
 
-REDDIT_BASE_URL = "https://www.reddit.com"
-HEADERS = {"User-Agent": "ReputationDashboard/1.0 by student"}
+# ============================================================
+# PUSHSHIFT ENDPOINT
+# ============================================================
+PUSHSHIFT_URL = "https://api.pushshift.io/reddit/comment/search/"
 
 # ============================================================
-# CONTROL MANUAL DEMO MODE (ca pe localhost)
+# CONTROL MANUAL DEMO MODE
 # ============================================================
-DEMO_MODE = False   # <<< EXACT ca pe localhost
+DEMO_MODE = False
 
 # ============================================================
 # FLAG — dacă pipeline-ul a folosit fallback
@@ -35,7 +37,7 @@ def generate_demo_mock(n=60):
     return pd.DataFrame(rows)
 
 # ============================================================
-# FETCH REDDIT POSTS (modern: /new.json)
+# FETCH COMMENTS FROM PUSHSHIFT
 # ============================================================
 def fetch_reddit_comments(subreddits: List[str], limit: int = 50) -> pd.DataFrame:
     global PIPELINE_USED_FALLBACK
@@ -47,22 +49,26 @@ def fetch_reddit_comments(subreddits: List[str], limit: int = 50) -> pd.DataFram
     rows: List[Dict] = []
 
     for sub in subreddits:
-        url = f"{REDDIT_BASE_URL}/r/{sub}/new.json?limit={limit}"
+        url = (
+            f"{PUSHSHIFT_URL}"
+            f"?subreddit={sub}"
+            f"&size={limit}"
+            f"&sort=desc"
+            f"&sort_type=created_utc"
+        )
+
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=10)
+            resp = requests.get(url, timeout=10)
             if resp.status_code != 200:
-                raise Exception("Reddit returned non-200")
+                raise Exception("Pushshift returned non-200")
 
-            data = resp.json()
-            for child in data.get("data", {}).get("children", []):
-                d = child.get("data", {})
+            data = resp.json().get("data", [])
 
-                text = d.get("selftext") or d.get("title") or ""
-
+            for d in data:
                 rows.append(
                     {
                         "comment_id": d.get("id"),
-                        "text": text,
+                        "text": d.get("body") or "",
                         "subreddit": d.get("subreddit", sub),
                         "author": d.get("author"),
                         "created_utc": d.get("created_utc"),
