@@ -55,7 +55,7 @@ def help_llm(topic: str) -> str:
     except Exception:
         # fallback 100% sigur
         static_text = app_guide_answer(topic)
-        return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
+        return f"⚠️ Groq indisponibil :((— folosesc explicația standard.\n\n{static_text}"
 
 
 # ============================================================
