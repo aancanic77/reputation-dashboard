@@ -20,19 +20,19 @@ STATUS_COLORS = {
 }
 
 # ============================================================
-# CACHE FUNCTIONS — trebuie să fie AICI, în afara render_tab4
+# CACHE FUNCTIONS — la nivel de modul (obligatoriu în Streamlit)
 # ============================================================
 
 @st.cache_data(show_spinner=False)
-def cached_logreg(text):
+def cached_logreg_label(text: str) -> str:
     return predict_logreg(text)["label"]
 
 @st.cache_data(show_spinner=False)
-def cached_vader(text):
+def cached_vader_label(text: str) -> str:
     return predict_vader(text)["label"]
 
 @st.cache_data(show_spinner=False)
-def cached_transformer(text):
+def cached_transformer_label(text: str) -> str:
     return predict_transformer(text)["label"]
 
 
@@ -113,16 +113,28 @@ def render_tab4(rows_slider: int, lang: str):
     # ============================
     comments_per_company = st.slider(
         t("tab4_comments_per_company", lang),
-        min_value=10, max_value=40, value=20, step=5,
+        min_value=10,
+        max_value=40,
+        value=20,
+        step=5,
     )
-    st.caption(t("tab4_expected_sample_caption", lang).format(count=comments_per_company * 3))
+    st.caption(
+        t("tab4_expected_sample_caption", lang).format(count=comments_per_company * 3)
+    )
 
     # ============================
     # RUN BUTTON
     # ============================
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<h2 class="section-title">{t("tab4_run_pipeline_title", lang)}</h2>', unsafe_allow_html=True)
-    run_clicked = st.button(t("tab4_run_button", lang), type="primary", use_container_width=True)
+    st.markdown(
+        f'<h2 class="section-title">{t("tab4_run_pipeline_title", lang)}</h2>',
+        unsafe_allow_html=True,
+    )
+    run_clicked = st.button(
+        t("tab4_run_button", lang),
+        type="primary",
+        use_container_width=True,
+    )
     st.markdown("</div>", unsafe_allow_html=True)
 
     if not run_clicked:
@@ -133,50 +145,76 @@ def render_tab4(rows_slider: int, lang: str):
     # STEP CARDS
     # ============================
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<h2 class="section-title">{t("tab4_pipeline_steps_title", lang)}</h2>', unsafe_allow_html=True)
+    st.markdown(
+        f'<h2 class="section-title">{t("tab4_pipeline_steps_title", lang)}</h2>',
+        unsafe_allow_html=True,
+    )
 
     steps = [
-        ("collect", "desc_collect"),
-        ("extract", "desc_extract"),
-        ("map", "desc_map"),
-        ("analyze", "desc_analyze"),
-        ("result", "desc_result"),
+        {
+            "title": t("tab4_step_collect", lang),
+            "description": t("tab4_step_desc_collect", lang),
+            "status": "Pending",
+        },
+        {
+            "title": t("tab4_step_extract", lang),
+            "description": t("tab4_step_desc_extract", lang),
+            "status": "Pending",
+        },
+        {
+            "title": t("tab4_step_map", lang),
+            "description": t("tab4_step_desc_map", lang),
+            "status": "Pending",
+        },
+        {
+            "title": t("tab4_step_analyze", lang),
+            "description": t("tab4_step_desc_analyze", lang),
+            "status": "Pending",
+        },
+        {
+            "title": t("tab4_step_result", lang),
+            "description": t("tab4_step_desc_result", lang),
+            "status": "Pending",
+        },
     ]
 
-    placeholders = []
-    for key, desc in steps:
-        ph = st.empty()
-        placeholders.append(ph)
-        update_step(ph, t(f"tab4_step_{key}", lang), t(f"tab4_step_{desc}", lang), "Pending")
+    placeholders = [st.empty() for _ in steps]
+    for i, s in enumerate(steps):
+        update_step(placeholders[i], s["title"], s["description"], s["status"])
 
     progress = st.progress(0)
 
     # ============================
     # STEP 1 — COLLECT
     # ============================
-    update_step(placeholders[0], t("tab4_step_collect", lang), t("tab4_step_desc_collect", lang), "Running")
+    steps[0]["status"] = "Running"
+    update_step(placeholders[0], **steps[0])
     progress.progress(10)
 
     live_df = run_reddit_pipeline_live(limit_per_sub=comments_per_company)
 
-    update_step(placeholders[0], t("tab4_step_collect", lang), t("tab4_step_desc_collect", lang), "Completed")
+    steps[0]["status"] = "Completed"
+    update_step(placeholders[0], **steps[0])
     progress.progress(20)
 
     # ============================
     # STEP 2 — EXTRACT
     # ============================
-    update_step(placeholders[1], t("tab4_step_extract", lang), t("tab4_step_desc_extract", lang), "Running")
+    steps[1]["status"] = "Running"
+    update_step(placeholders[1], **steps[1])
     progress.progress(30)
 
     extracted_df = live_df.copy()
 
-    update_step(placeholders[1], t("tab4_step_extract", lang), t("tab4_step_desc_extract", lang), "Completed")
+    steps[1]["status"] = "Completed"
+    update_step(placeholders[1], **steps[1])
     progress.progress(40)
 
     # ============================
     # STEP 3 — MAP
     # ============================
-    update_step(placeholders[2], t("tab4_step_map", lang), t("tab4_step_desc_map", lang), "Running")
+    steps[2]["status"] = "Running"
+    update_step(placeholders[2], **steps[2])
     progress.progress(50)
 
     mapped_df = extracted_df.copy()
@@ -185,36 +223,41 @@ def render_tab4(rows_slider: int, lang: str):
     MAX_ROWS = 25
     if len(mapped_df) > MAX_ROWS:
         mapped_df = mapped_df.head(MAX_ROWS)
-        st.warning(f"Au fost procesate doar primele {MAX_ROWS} comentarii pentru performanță.")
+        st.warning(
+            f"Au fost procesate doar primele {MAX_ROWS} comentarii pentru performanță."
+        )
 
-    update_step(placeholders[2], t("tab4_step_map", lang), t("tab4_step_desc_map", lang), "Completed")
+    steps[2]["status"] = "Completed"
+    update_step(placeholders[2], **steps[2])
     progress.progress(60)
 
     # ============================
     # STEP 4 — ANALYZE
     # ============================
-    update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Running")
+    steps[3]["status"] = "Running"
+    update_step(placeholders[3], **steps[3])
     progress.progress(70)
 
-    mapped_df["lr_label"] = mapped_df["text"].apply(cached_logreg)
-    mapped_df["vader_label"] = mapped_df["text"].apply(cached_vader)
+    mapped_df["lr_label"] = mapped_df["text"].apply(cached_logreg_label)
+    mapped_df["vader_label"] = mapped_df["text"].apply(cached_vader_label)
 
     if DEMO_MODE:
         mapped_df["dl_label"] = "disabled"
     else:
-        mapped_df["dl_label"] = mapped_df["text"].apply(cached_transformer)
+        mapped_df["dl_label"] = mapped_df["text"].apply(cached_transformer_label)
 
-    update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Completed")
+    steps[3]["status"] = "Completed"
+    update_step(placeholders[3], **steps[3])
     progress.progress(85)
 
-    # DEBUG
+    # (poți șterge debug-ul după ce ești mulțumită)
     st.subheader("DEBUG — Structura mapped_df")
     st.write("Coloane:", list(mapped_df.columns))
     st.write(mapped_df.head())
 
-    # -------------------------------
-    #  STEP 5 — RESULT (cu protecție de erori)
-    # -------------------------------
+    # ============================
+    # STEP 5 — RESULT (cu try/except)
+    # ============================
     steps[4]["status"] = "Running"
     update_step(placeholders[4], **steps[4])
     progress.progress(95)
@@ -239,33 +282,53 @@ def render_tab4(rows_slider: int, lang: str):
         st.exception(e)
         return
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
     # ============================
-    # RESULTS
+    # RESULTS CARD
     # ============================
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<h2 class="section-title">{t("tab4_results_title", lang)}</h2>', unsafe_allow_html=True)
+    st.markdown(
+        f'<h2 class="section-title">{t("tab4_results_title", lang)}</h2>',
+        unsafe_allow_html=True,
+    )
 
     col1, col2, col3 = st.columns(3)
     col1.metric(t("tab4_comments_metric", lang), len(final_df))
     col2.metric(t("tab4_companies_metric", lang), final_df["company"].nunique())
-    col3.metric(t("tab4_models_metric", lang),
-                t("tab4_models_value_default", lang) if not DEMO_MODE else t("tab4_models_value_demo", lang))
+    col3.metric(
+        t("tab4_models_metric", lang),
+        t("tab4_models_value_default", lang)
+        if not DEMO_MODE
+        else t("tab4_models_value_demo", lang),
+    )
 
     # ============================
-    # CHARTS
+    # COMMENTS OVER TIME
     # ============================
     st.markdown(f"### {t('tab4_comments_over_time', lang)}")
 
     time_df = final_df.copy()
-    time_df["created_dt"] = pd.to_datetime(time_df["created_utc"], unit="s", errors="coerce")
+    time_df["created_dt"] = pd.to_datetime(
+        time_df["created_utc"], unit="s", errors="coerce"
+    )
     time_df = time_df.dropna(subset=["created_dt"])
-    time_df = time_df.set_index("created_dt").resample("5min").size().rename("comments").to_frame()
+    time_df = (
+        time_df.set_index("created_dt")
+        .resample("5min")
+        .size()
+        .rename("comments")
+        .to_frame()
+    )
 
     if not time_df.empty:
         st.line_chart(time_df.tail(50))
     else:
         st.caption(t("tab4_no_valid_timestamps_caption", lang))
 
+    # ============================
+    # COMMENTS PER COMPANY
+    # ============================
     st.markdown(f"### {t('tab4_comments_per_company_chart', lang)}")
     st.bar_chart(final_df["company"].value_counts())
 
@@ -275,28 +338,54 @@ def render_tab4(rows_slider: int, lang: str):
     st.markdown(f"### {t('tab4_sample_comments', lang)}")
 
     preview_cols = [
-        "company", "subreddit", "author", "created_at",
-        "time_ago", "text", "lr_label", "vader_label", "dl_label",
+        "company",
+        "subreddit",
+        "author",
+        "created_at",
+        "time_ago",
+        "text",
+        "lr_label",
+        "vader_label",
+        "dl_label",
     ]
-
     st.caption("Se afișează doar primele 10 comentarii pentru performanță.")
-    st.dataframe(final_df[preview_cols].head(10), use_container_width=True, hide_index=True)
+    st.dataframe(
+        final_df[preview_cols].head(10),
+        use_container_width=True,
+        hide_index=True,
+    )
 
     # ============================
-    # DISTRIBUȚII
+    # SENTIMENT DISTRIBUTION
     # ============================
     st.markdown(f"### {t('tab4_sentiment_distribution', lang)}")
 
+    dist_lr = (
+        final_df.groupby(["company", "lr_label"])
+        .size()
+        .reset_index(name="count")
+        .head(10)
+    )
+    dist_vader = (
+        final_df.groupby(["company", "vader_label"])
+        .size()
+        .reset_index(name="count")
+        .head(10)
+    )
+    dist_dl = (
+        final_df.groupby(["company", "dl_label"])
+        .size()
+        .reset_index(name="count")
+        .head(10)
+    )
+
     st.markdown(f"**{t('tab4_logistic_regression', lang)}**")
-    st.dataframe(final_df.groupby(["company", "lr_label"]).size().reset_index(name="count").head(10),
-                 use_container_width=True, hide_index=True)
+    st.dataframe(dist_lr, use_container_width=True, hide_index=True)
 
     st.markdown(f"**{t('tab4_vader', lang)}**")
-    st.dataframe(final_df.groupby(["company", "vader_label"]).size().reset_index(name="count").head(10),
-                 use_container_width=True, hide_index=True)
+    st.dataframe(dist_vader, use_container_width=True, hide_index=True)
 
     st.markdown(f"**{t('tab4_transformer', lang)}**")
-    st.dataframe(final_df.groupby(["company", "dl_label"]).size().reset_index(name="count").head(10),
-                 use_container_width=True, hide_index=True)
+    st.dataframe(dist_dl, use_container_width=True, hide_index=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
