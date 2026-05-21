@@ -10,52 +10,71 @@ import pandas as pd
 # ============================================================
 def app_guide_answer(topic: str) -> str:
     guides = {
-        "Dashboard": "...",
-        "Logistic Regression": "...",
-        "VADER": "...",
-        "Transformer": "...",
-        "Live Pipeline": "...",
-        "Proof of Source": "...",
-        "AI Insights": "...",
+        "Dashboard": "Dashboard-ul arată analiza sentimentului pe modele ML.",
+        "Logistic Regression": "Model clasic ML pe TF-IDF, 3 clase echilibrate.",
+        "VADER": "Analizor rule-based optimizat pentru social media.",
+        "Transformer": "Model contextual (DistilBERT) pentru sentiment.",
+        "Live Pipeline": "ETL complet: colectare → extragere → mapare → analiză.",
+        "Proof of Source": "Afișează comentariile reale din Reddit folosite în metrici.",
+        "AI Insights": "Generează insight-uri marketing cu LLM.",
     }
     return guides.get(topic, "❓ Subiect necunoscut.")
 
 
 # ============================================================
-#  GROQ HELP (RAPID, SCURT)
+#  ULTRA-RAPID GROQ HELP (cache + pre-prompt + bilingv)
 # ============================================================
 from groq import Groq
-def help_llm(topic: str) -> str:
-    # fallback static dacă topic e None sau gol
-    if not topic:
-        return "⚠️ Eroare: subiect invalid."
 
-    prompt = f"Explain briefly the '{topic}' section of a sentiment dashboard. One short paragraph."
+HELP_SYSTEM_PROMPT = """
+You are a concise assistant for a sentiment dashboard.
+Rules:
+- Answer in 2–3 sentences maximum.
+- No marketing language.
+- No invented features.
+- Stay factual and minimal.
+- If user language is Romanian, answer in Romanian.
+- If user language is English, answer in English.
+"""
+
+@st.cache_data(show_spinner=False)
+def help_llm(topic: str, lang: str) -> str:
+    if not topic:
+        return "⚠️ Subiect invalid."
+
+    # prompt în funcție de limbă
+    if lang == "RO":
+        lang_prompt = f"Explică foarte pe scurt secțiunea '{topic}'."
+    else:
+        lang_prompt = f"Briefly explain the '{topic}' section."
 
     try:
-        client = Groq(api_key=st.secrets.get("GROQ_API_KEY", None))
-
-        # dacă cheia nu există → fallback instant
+        client = Groq(api_key=st.secrets.get("GROQ_API_KEY"))
         if client is None:
             raise ValueError("Missing Groq key")
 
         response = client.chat.completions.create(
             model="llama3-8b-8192",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": HELP_SYSTEM_PROMPT},
+                {"role": "user", "content": lang_prompt}
+            ],
             temperature=0.1,
-            max_tokens=80
+            max_tokens=60
         )
 
-        text = response.choices[0].message["content"]
-        if not text or text.strip() == "":
-            raise ValueError("Empty Groq response")
+        text = response.choices[0].message["content"].strip()
+        if not text:
+            raise ValueError("Empty response")
 
         return text
 
     except Exception:
-        # fallback 100% sigur
         static_text = app_guide_answer(topic)
-        return f"⚠️ Groq indisponibil :((— folosesc explicația standard.\n\n{static_text}"
+        if lang == "RO":
+            return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
+        else:
+            return f"⚠️ Groq unavailable — using standard explanation.\n\n{static_text}"
 
 
 # ============================================================
@@ -149,7 +168,7 @@ def help_dialog():
     )
 
     if st.button("Trimite", type="primary"):
-        answer = help_llm(topic)
+        answer = help_llm(topic, st.session_state.lang)
         st.markdown(f"### Explicație\n{answer}")
 
 
