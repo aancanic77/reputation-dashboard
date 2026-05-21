@@ -6,58 +6,41 @@ import streamlit as st
 import pandas as pd
 
 # ============================================================
-#  STATIC FALLBACK HELP (folosit dacă Groq pică)
+#  STATIC FALLBACK HELP
 # ============================================================
 def app_guide_answer(topic: str) -> str:
     guides = {
-        "Dashboard": "📊 Dashboard shows sentiment analysis across 3 ML models.",
-        "Logistic Regression": "🤖 Logistic Regression (3-class) uses TF-IDF vectors.",
-        "VADER": "⚖️ VADER is a rule-based sentiment analyzer optimized for social media.",
-        "Transformer": "🧠 Transformer (DistilBERT) provides contextual sentiment understanding.",
-        "Live Pipeline": "🔄 Live Pipeline shows the full ETL: Collect → Extract → Map → Analyze → Result.",
-        "Proof of Source": "📁 Proof of Source displays real Reddit comments behind each metric.",
-        "AI Insights": "💡 AI Insights uses LLMs to generate marketing intelligence.",
+        "Dashboard": "...",
+        "Logistic Regression": "...",
+        "VADER": "...",
+        "Transformer": "...",
+        "Live Pipeline": "...",
+        "Proof of Source": "...",
+        "AI Insights": "...",
     }
-
     return guides.get(topic, "❓ Subiect necunoscut.")
 
 
 # ============================================================
-#  GROQ HELP (LLM) + FALLBACK
+#  GROQ HELP (RAPID, SCURT)
 # ============================================================
 from groq import Groq
 
 def help_llm(topic: str) -> str:
-    """
-    Încearcă să explice topicul folosind Groq.
-    Dacă Groq pică → fallback la app_guide_answer().
-    """
-
-    prompt = f"""
-You are a technical assistant for a sentiment analysis dashboard.
-Explain the section called "{topic}" clearly and concisely.
-Do NOT invent features that do not exist in the app.
-Do NOT add marketing fluff.
-Focus only on what the section actually does in the dashboard.
-"""
+    prompt = f"Explain briefly the '{topic}' section of a sentiment dashboard. One short paragraph."
 
     try:
         client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-
         response = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
-            max_tokens=250
+            max_tokens=80
         )
-
         return response.choices[0].message["content"]
 
-    except Exception as e:
-        # fallback automat
-        return app_guide_answer(topic)
-
-
+    except:
+        return "⚠️ Groq indisponibil — folosesc explicația standard.\n\n" + app_guide_answer(topic)
 # ============================================================
 #  PAGE CONFIG
 # ============================================================
