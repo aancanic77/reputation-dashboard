@@ -334,4 +334,7 @@ button[kind="primary"] {
     box-shadow: 0 4px 10px rgba(0,0,0,0.12) !important;
 }
 
+button[data-testid="stBaseButton-help_btn_sidebar"] {
+    width: 100% !important;
+}
 
