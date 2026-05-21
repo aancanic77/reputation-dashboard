@@ -38,6 +38,10 @@ def cached_transformer_label(text: str) -> str:
 
 def time_ago(ts):
     try:
+        # curățăm stringurile
+        if isinstance(ts, str):
+            ts = ts.strip()
+
         ts = float(ts)
         dt = datetime.fromtimestamp(ts, tz=timezone.utc)
     except Exception:
@@ -54,6 +58,7 @@ def time_ago(ts):
     if sec < 86400:
         return f"acum {int(sec // 3600)} ore"
     return f"acum {int(sec // 86400)} zile"
+
 
 
 def render_step_card(title: str, description: str, status: str) -> str:
