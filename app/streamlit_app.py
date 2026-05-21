@@ -25,24 +25,38 @@ def app_guide_answer(topic: str) -> str:
 #  GROQ HELP (RAPID, SCURT)
 # ============================================================
 from groq import Groq
-
 def help_llm(topic: str) -> str:
+    # fallback static dacă topic e None sau gol
+    if not topic:
+        return "⚠️ Eroare: subiect invalid."
+
     prompt = f"Explain briefly the '{topic}' section of a sentiment dashboard. One short paragraph."
 
     try:
-        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+        client = Groq(api_key=st.secrets.get("GROQ_API_KEY", None))
+
+        # dacă cheia nu există → fallback instant
+        if client is None:
+            raise ValueError("Missing Groq key")
+
         response = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=80
         )
-        return response.choices[0].message["content"]
+
+        text = response.choices[0].message["content"]
+        if not text or text.strip() == "":
+            raise ValueError("Empty Groq response")
+
+        return text
 
     except Exception:
-        # AICI era problema: trebuie returnat TEXTUL STATIC complet
+        # fallback 100% sigur
         static_text = app_guide_answer(topic)
         return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
+
 
 # ============================================================
 #  PAGE CONFIG
