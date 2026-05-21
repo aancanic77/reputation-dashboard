@@ -1,5 +1,4 @@
-import reddit_pipeline
-st.write("USING REDDIT PIPELINE FROM:", reddit_pipeline.__file__)
+
 
 import time
 from datetime import datetime, timezone
@@ -9,6 +8,8 @@ import streamlit as st
 
 from translations import t
 from reddit_pipeline import run_reddit_pipeline_live, DEMO_MODE
+
+st.write("USING REDDIT PIPELINE FROM:", reddit_pipeline.__file__)
 from sentiment_models import (
     predict_logreg,
     predict_vader,
