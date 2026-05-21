@@ -84,7 +84,8 @@ def render_sidebar() -> dict:
     # HELP BUTTON — AICI ESTE LOCUL CORECT
     # ============================
     st.sidebar.markdown("---")
-    if st.sidebar.button("💬 Help", key="help_btn_sidebar"):
+    if st.sidebar.button("💬 Help", key="help_btn_sidebar", type="primary"):
+
         st.session_state.help_open = True
 
     # ============================
