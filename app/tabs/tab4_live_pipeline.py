@@ -191,20 +191,35 @@ def render_tab4(rows_slider: int, lang: str):
     update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Completed")
     progress.progress(85)
 
-    # ============================
-    # STEP 5 — RESULT
-    # ============================
-    update_step(placeholders[4], t("tab4_step_result", lang), t("tab4_step_desc_result", lang), "Running")
+    # -------------------------------
+    #  STEP 5 — RESULT (cu protecție de erori)
+    # -------------------------------
+    steps[4]["status"] = "Running"
+    update_step(placeholders[4], **steps[4])
     progress.progress(95)
+    
+    try:
+        final_df = mapped_df.copy()
+    
+        # conversie timp
+        final_df["created_at"] = pd.to_datetime(
+            final_df["created_utc"], unit="s", errors="coerce"
+        ).dt.strftime("%Y-%m-%d %H:%M:%S")
+    
+        final_df["time_ago"] = final_df["created_utc"].apply(time_ago)
+    
+        # succes
+        steps[4]["status"] = "Completed"
+        update_step(placeholders[4], **steps[4])
+        progress.progress(100)
+    
+    except Exception as e:
+        steps[4]["status"] = "Error"
+        update_step(placeholders[4], **steps[4])
+        st.error("A apărut o eroare în etapa finală a pipeline-ului.")
+        st.exception(e)
+        return
 
-    final_df = mapped_df.copy()
-    final_df["created_at"] = pd.to_datetime(final_df["created_utc"], unit="s", errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
-    final_df["time_ago"] = final_df["created_utc"].apply(time_ago)
-
-    update_step(placeholders[4], t("tab4_step_result", lang), t("tab4_step_desc_result", lang), "Completed")
-    progress.progress(100)
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # ============================
     # RESULTS
