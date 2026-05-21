@@ -346,3 +346,14 @@ button[kind="primary"] {
     text-align: center !important;
 }
 
+.st-key-help_btn_sidebar {
+    width: 100% !important;
+}
+
+.st-key-help_btn_sidebar > div {
+    width: 100% !important;
+}
+
+.st-key-help_btn_sidebar button {
+    width: 100% !important;
+}
