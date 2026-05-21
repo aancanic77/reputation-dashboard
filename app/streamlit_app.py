@@ -4,7 +4,6 @@ load_dotenv()
 
 import streamlit as st
 import pandas as pd
-from groq import Groq
 
 # ============================================================
 #  STATIC FALLBACK HELP
@@ -23,8 +22,10 @@ def app_guide_answer(topic: str) -> str:
 
 
 # ============================================================
-#  ULTRA-RAPID GROQ HELP (cache + pre-prompt + bilingv)
+#  ULTRA-RAPID GROQ HELP (cache permanent + pre-prompt + bilingv)
 # ============================================================
+from groq import Groq
+
 HELP_SYSTEM_PROMPT = """
 You are a concise assistant for a sentiment dashboard.
 Rules:
@@ -36,8 +37,12 @@ Rules:
 - If user language is English, answer in English.
 """
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource
 def cached_help(topic: str, lang: str) -> str:
+    """
+    Cache permanent: dacă Groq răspunde o dată, nu mai este apelat niciodată
+    pentru același topic + limbă.
+    """
     if lang == "RO":
         lang_prompt = f"Explică foarte pe scurt secțiunea '{topic}'."
     else:
@@ -52,10 +57,10 @@ def cached_help(topic: str, lang: str) -> str:
             model="llama3-8b-8192",
             messages=[
                 {"role": "system", "content": HELP_SYSTEM_PROMPT},
-                {"role": "user", "content": lang_prompt},
+                {"role": "user", "content": lang_prompt}
             ],
             temperature=0.1,
-            max_tokens=60,
+            max_tokens=60
         )
 
         text = response.choices[0].message["content"].strip()
@@ -118,15 +123,6 @@ if "lang" not in st.session_state:
 if "help_open" not in st.session_state:
     st.session_state.help_open = False
 
-if "_css_loaded" not in st.session_state:
-    st.session_state["_css_loaded"] = False
-
-if "_header_loaded" not in st.session_state:
-    st.session_state["_header_loaded"] = False
-
-if "_footer_loaded" not in st.session_state:
-    st.session_state["_footer_loaded"] = False
-
 
 # ============================================================
 #  LANDING PAGE
@@ -137,11 +133,10 @@ if not st.session_state.entered:
 
 
 # ============================================================
-#  GLOBAL STYLES (o singură dată)
+#  GLOBAL STYLES
 # ============================================================
-if not st.session_state["_css_loaded"]:
-    render_base_styles()
-    st.session_state["_css_loaded"] = True
+st.session_state["_components_styles_loaded"] = False
+render_base_styles()
 
 st.markdown(
     "<script>document.body.classList.remove('landing-page');</script>",
@@ -150,17 +145,13 @@ st.markdown(
 
 
 # ============================================================
-#  GLOBAL HEADER (o singură dată)
+#  GLOBAL HEADER
 # ============================================================
-if not st.session_state["_header_loaded"]:
-    render_header()
-    st.session_state["_header_loaded"] = True
-else:
-    render_header()
+render_header()
 
 
 # ============================================================
-#  HELP DIALOG
+#  HELP DIALOG (cu Groq + fallback + cache permanent)
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
@@ -177,7 +168,7 @@ def help_dialog():
             "Proof of Source",
             "AI Insights",
         ],
-        key="help_topic_select",
+        key="help_topic_select"
     )
 
     if st.button("Trimite", type="primary"):
@@ -186,20 +177,10 @@ def help_dialog():
 
 
 # ============================================================
-#  SIDEBAR CONTROLS (cu buton REFRESH)
+#  SIDEBAR CONTROLS
 # ============================================================
 if st.session_state.show_controls:
-    with st.sidebar:
-        sidebar_values = render_sidebar()
-
-        # butonul tău original REFRESH
-        refresh_clicked = st.button("Refresh", type="primary")
-
-        # dacă ai apăsat refresh → forțează rerun
-        if refresh_clicked:
-            st.session_state.dashboard_refresh = True
-            st.rerun()
-
+    sidebar_values = render_sidebar()
 else:
     sidebar_values = {
         "dashboard_method": "Logistic Regression 3-class balanced",
@@ -209,7 +190,6 @@ else:
         "dashboard_refresh": False,
         "lang": st.session_state.lang,
     }
-
 
 # Trigger dialog
 if st.session_state.help_open:
@@ -226,7 +206,7 @@ dashboard_refresh = sidebar_values["dashboard_refresh"]
 
 
 # ============================================================
-#  LOAD BASE DATA (optimizat, fără .copy())
+#  LOAD BASE DATA
 # ============================================================
 @st.cache_data(show_spinner=False)
 def get_base_df_full():
@@ -242,14 +222,10 @@ def get_base_df_full():
 
 
 base_df_full = get_base_df_full()
+base_df = base_df_full.copy() if base_df_full is not None else None
 
-if base_df_full is not None and not base_df_full.empty:
-    if company_filter != "All":
-        base_df = base_df_full[base_df_full["company"] == company_filter]
-    else:
-        base_df = base_df_full
-else:
-    base_df = pd.DataFrame()
+if base_df is not None and company_filter != "All":
+    base_df = base_df[base_df["company"] == company_filter]
 
 
 # ============================================================
@@ -290,8 +266,4 @@ with tab5:
 # ============================================================
 #  GLOBAL FOOTER
 # ============================================================
-if not st.session_state["_footer_loaded"]:
-    render_footer()
-    st.session_state["_footer_loaded"] = True
-else:
-    render_footer()
+render_footer()
