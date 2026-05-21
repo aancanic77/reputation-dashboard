@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 
 # ============================================================
-#  GUIDE ASSISTANT HELPER
+#  STATIC FALLBACK HELP (folosit dacă Groq pică)
 # ============================================================
 def app_guide_answer(topic: str) -> str:
     guides = {
@@ -21,6 +21,41 @@ def app_guide_answer(topic: str) -> str:
 
     return guides.get(topic, "❓ Subiect necunoscut.")
 
+
+# ============================================================
+#  GROQ HELP (LLM) + FALLBACK
+# ============================================================
+from groq import Groq
+
+def help_llm(topic: str) -> str:
+    """
+    Încearcă să explice topicul folosind Groq.
+    Dacă Groq pică → fallback la app_guide_answer().
+    """
+
+    prompt = f"""
+You are a technical assistant for a sentiment analysis dashboard.
+Explain the section called "{topic}" clearly and concisely.
+Do NOT invent features that do not exist in the app.
+Do NOT add marketing fluff.
+Focus only on what the section actually does in the dashboard.
+"""
+
+    try:
+        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+            max_tokens=250
+        )
+
+        return response.choices[0].message["content"]
+
+    except Exception as e:
+        # fallback automat
+        return app_guide_answer(topic)
 
 
 # ============================================================
@@ -93,40 +128,14 @@ render_header()
 
 
 # ============================================================
-#  TRANSLATION FUNCTION
-# ============================================================
-def translate_to_ro(text: str) -> str:
-    import requests
-    headers = {"Authorization": f"Bearer {st.secrets['HF_API_KEY']}"}
-    payload = {"inputs": text}
-
-    r = requests.post(
-        "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ro",
-        headers=headers,
-        json=payload
-    )
-
-    try:
-        return r.json()[0]["translation_text"]
-    except:
-        return text
-
-
-# ============================================================
-#  HELP DIALOG
+#  HELP DIALOG (cu Groq + fallback)
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
-    lang = st.session_state.get("lang", "RO")
-
-    st.markdown("""
-    ### Cum te pot ajuta?
-
-    Alege un subiect despre care vrei explicații:
-    """)
+    st.markdown("### Alege un subiect pentru explicații")
 
     topic = st.selectbox(
-        "Alege un subiect",
+        "Subiect",
         [
             "Dashboard",
             "Logistic Regression",
@@ -139,14 +148,13 @@ def help_dialog():
         key="help_topic_select"
     )
 
-    if st.button("Trimite", key="help_send_btn", type="primary"):
-        answer = app_guide_answer(topic)
-        st.markdown(f"### Răspuns\n{answer}")
-
+    if st.button("Trimite", type="primary"):
+        answer = help_llm(topic)
+        st.markdown(f"### Explicație\n{answer}")
 
 
 # ============================================================
-#  SIDEBAR CONTROLS (Help button is inside render_sidebar)
+#  SIDEBAR CONTROLS
 # ============================================================
 if st.session_state.show_controls:
     sidebar_values = render_sidebar()
@@ -160,9 +168,7 @@ else:
         "lang": st.session_state.lang,
     }
 
-# ============================================================
-#  TRIGGER HELP DIALOG
-# ============================================================
+# Trigger dialog
 if st.session_state.help_open:
     help_dialog()
     st.session_state.help_open = False
