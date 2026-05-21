@@ -165,7 +165,9 @@ else:
         "lang": st.session_state.lang,
     }
 
-# Trigger dialog
+# ============================================================
+#  TRIGGER HELP DIALOG
+# ============================================================
 if st.session_state.help_open:
     help_dialog()
     st.session_state.help_open = False
