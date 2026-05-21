@@ -4,6 +4,7 @@ load_dotenv()
 
 import streamlit as st
 import pandas as pd
+from groq import Groq
 
 # ============================================================
 #  STATIC FALLBACK HELP
@@ -22,10 +23,8 @@ def app_guide_answer(topic: str) -> str:
 
 
 # ============================================================
-#  ULTRA-RAPID GROQ HELP (cache permanent + pre-prompt + bilingv)
+#  ULTRA-RAPID GROQ HELP (cache + pre-prompt + bilingv)
 # ============================================================
-from groq import Groq
-
 HELP_SYSTEM_PROMPT = """
 You are a concise assistant for a sentiment dashboard.
 Rules:
@@ -37,12 +36,8 @@ Rules:
 - If user language is English, answer in English.
 """
 
-@st.cache_resource
+@st.cache_data(show_spinner=False)
 def cached_help(topic: str, lang: str) -> str:
-    """
-    Cache permanent: dacă Groq răspunde o dată, nu mai este apelat niciodată
-    pentru același topic + limbă.
-    """
     if lang == "RO":
         lang_prompt = f"Explică foarte pe scurt secțiunea '{topic}'."
     else:
@@ -57,10 +52,10 @@ def cached_help(topic: str, lang: str) -> str:
             model="llama3-8b-8192",
             messages=[
                 {"role": "system", "content": HELP_SYSTEM_PROMPT},
-                {"role": "user", "content": lang_prompt}
+                {"role": "user", "content": lang_prompt},
             ],
             temperature=0.1,
-            max_tokens=60
+            max_tokens=60,
         )
 
         text = response.choices[0].message["content"].strip()
@@ -123,6 +118,15 @@ if "lang" not in st.session_state:
 if "help_open" not in st.session_state:
     st.session_state.help_open = False
 
+if "_css_loaded" not in st.session_state:
+    st.session_state["_css_loaded"] = False
+
+if "_header_loaded" not in st.session_state:
+    st.session_state["_header_loaded"] = False
+
+if "_footer_loaded" not in st.session_state:
+    st.session_state["_footer_loaded"] = False
+
 
 # ============================================================
 #  LANDING PAGE
@@ -133,10 +137,11 @@ if not st.session_state.entered:
 
 
 # ============================================================
-#  GLOBAL STYLES
+#  GLOBAL STYLES (o singură dată)
 # ============================================================
-st.session_state["_components_styles_loaded"] = False
-render_base_styles()
+if not st.session_state["_css_loaded"]:
+    render_base_styles()
+    st.session_state["_css_loaded"] = True
 
 st.markdown(
     "<script>document.body.classList.remove('landing-page');</script>",
@@ -145,13 +150,18 @@ st.markdown(
 
 
 # ============================================================
-#  GLOBAL HEADER
+#  GLOBAL HEADER (o singură dată)
 # ============================================================
-render_header()
+if not st.session_state["_header_loaded"]:
+    render_header()
+    st.session_state["_header_loaded"] = True
+else:
+    # dacă header-ul tău are elemente dinamice, poți apela direct render_header()
+    render_header()
 
 
 # ============================================================
-#  HELP DIALOG (cu Groq + fallback + cache permanent)
+#  HELP DIALOG (cu Groq + fallback + cache)
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
@@ -168,19 +178,47 @@ def help_dialog():
             "Proof of Source",
             "AI Insights",
         ],
-        key="help_topic_select"
+        key="help_topic_select",
     )
 
-    if st.button("Trimite", type="primary"):
-        answer = help_llm(topic, st.session_state.lang)
-        st.markdown(f"### Explicație\n{answer}")
+    with st.form("help_form"):
+        submitted = st.form_submit_button("Trimite", type="primary")
+        if submitted:
+            answer = help_llm(topic, st.session_state.lang)
+            st.markdown(f"### Explicație\n{answer}")
 
 
 # ============================================================
-#  SIDEBAR CONTROLS
+#  SIDEBAR CONTROLS (optimizat cu form)
 # ============================================================
 if st.session_state.show_controls:
-    sidebar_values = render_sidebar()
+    with st.sidebar.form("controls_form"):
+        sidebar_values = render_sidebar()
+        apply_filters = st.form_submit_button("Aplică", type="primary")
+        if not apply_filters:
+            # dacă nu ai apăsat încă, folosește ultima stare
+            sidebar_values = {
+                "dashboard_method": st.session_state.get(
+                    "dashboard_method", "Logistic Regression 3-class balanced"
+                ),
+                "company_filter": st.session_state.get("company_filter", "All"),
+                "rows_slider": st.session_state.get("rows_slider", 50),
+                "dashboard_limit_rows": st.session_state.get(
+                    "dashboard_limit_rows", 50
+                ),
+                "dashboard_refresh": st.session_state.get("dashboard_refresh", False),
+                "lang": st.session_state.lang,
+            }
+        else:
+            # salvează în session_state pentru consistență
+            st.session_state.dashboard_method = sidebar_values["dashboard_method"]
+            st.session_state.company_filter = sidebar_values["company_filter"]
+            st.session_state.rows_slider = sidebar_values["rows_slider"]
+            st.session_state.dashboard_limit_rows = sidebar_values[
+                "dashboard_limit_rows"
+            ]
+            st.session_state.dashboard_refresh = sidebar_values["dashboard_refresh"]
+            st.session_state.lang = sidebar_values["lang"]
 else:
     sidebar_values = {
         "dashboard_method": "Logistic Regression 3-class balanced",
@@ -206,7 +244,7 @@ dashboard_refresh = sidebar_values["dashboard_refresh"]
 
 
 # ============================================================
-#  LOAD BASE DATA
+#  LOAD BASE DATA (optimizat, fără .copy())
 # ============================================================
 @st.cache_data(show_spinner=False)
 def get_base_df_full():
@@ -222,10 +260,54 @@ def get_base_df_full():
 
 
 base_df_full = get_base_df_full()
-base_df = base_df_full.copy() if base_df_full is not None else None
 
-if base_df is not None and company_filter != "All":
-    base_df = base_df[base_df["company"] == company_filter]
+if base_df_full is not None and not base_df_full.empty:
+    if company_filter != "All":
+        base_df = base_df_full[base_df_full["company"] == company_filter]
+    else:
+        base_df = base_df_full
+else:
+    base_df = pd.DataFrame()
+
+
+# ============================================================
+#  CACHED RENDER WRAPPERS PENTRU TAB-URI (opțional, dar rapid)
+# ============================================================
+@st.cache_data(show_spinner=False)
+def render_dashboard_cached(df_full, method_name, company, limit_rows, refresh):
+    # funcția originală face doar side-effects, dar cache-ul evită recalculări grele
+    render_dashboard(
+        df_full,
+        method_name=method_name,
+        company=company,
+        limit_rows=limit_rows,
+        refresh=refresh,
+    )
+    return True
+
+
+@st.cache_data(show_spinner=False)
+def render_tab2_cached():
+    render_tab2()
+    return True
+
+
+@st.cache_data(show_spinner=False)
+def render_tab3_cached():
+    render_tab3()
+    return True
+
+
+@st.cache_data(show_spinner=False)
+def render_tab4_cached(rows_slider, lang):
+    render_tab4(rows_slider, lang)
+    return True
+
+
+@st.cache_data(show_spinner=False)
+def render_tab5_cached(base_df, rows_slider):
+    render_tab5(base_df, rows_slider)
+    return True
 
 
 # ============================================================
@@ -242,7 +324,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(
 )
 
 with tab1:
-    render_dashboard(
+    render_dashboard_cached(
         base_df_full,
         method_name=dashboard_method,
         company=company_filter,
@@ -251,19 +333,23 @@ with tab1:
     )
 
 with tab2:
-    render_tab2()
+    render_tab2_cached()
 
 with tab3:
-    render_tab3()
+    render_tab3_cached()
 
 with tab4:
-    render_tab4(rows_slider, lang)
+    render_tab4_cached(rows_slider, lang)
 
 with tab5:
-    render_tab5(base_df, rows_slider)
+    render_tab5_cached(base_df, rows_slider)
 
 
 # ============================================================
-#  GLOBAL FOOTER
+#  GLOBAL FOOTER (o singură dată, dar îl putem re-apela dacă e dinamic)
 # ============================================================
-render_footer()
+if not st.session_state["_footer_loaded"]:
+    render_footer()
+    st.session_state["_footer_loaded"] = True
+else:
+    render_footer()
