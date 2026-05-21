@@ -190,6 +190,10 @@ def render_tab4(rows_slider: int, lang: str):
 
     update_step(placeholders[3], t("tab4_step_analyze", lang), t("tab4_step_desc_analyze", lang), "Completed")
     progress.progress(85)
+    
+    st.subheader("DEBUG — Structura mapped_df")
+    st.write("Coloane:", list(mapped_df.columns))
+    st.write(mapped_df.head())
 
     # -------------------------------
     #  STEP 5 — RESULT (cu protecție de erori)
