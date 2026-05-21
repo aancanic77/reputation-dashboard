@@ -107,7 +107,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 if help_clicked:
     st.session_state.help_open = True
-    st.rerun()
 
 
 # ============================================================
