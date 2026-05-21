@@ -321,3 +321,23 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 34px rgba(37, 99, 235, 0.45) !important;
 }
+
+/* Floating Help Button */
+#floating-help-btn {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    background: linear-gradient(135deg, #FF8A00 0%, #FFC300 100%);
+    color: white;
+    padding: 16px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 999999;
+    box-shadow: 0 14px 35px rgba(255, 138, 0, 0.35);
+    transition: transform 0.2s ease;
+}
+
+#floating-help-btn:hover {
+    transform: scale(1.05);
+}
