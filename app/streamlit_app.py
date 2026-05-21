@@ -40,7 +40,8 @@ st.set_page_config(
 )
 
 
-from app.utils.__init__ import load_reddit_dataframe
+from app.utils import load_reddit_dataframe
+
 
 
 # Tabs
