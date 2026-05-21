@@ -120,16 +120,21 @@ if "help_open" not in st.session_state:
 
 
 # ============================================================
-#  JS: CLICK → OPEN POPUP
+#  JS: CLICK → OPEN POPUP (COMPATIBIL CU STREAMLIT CLOUD)
 # ============================================================
 help_js = """
 <script>
-const helpBtn = window.parent.document.getElementById("floating-help-btn");
-if (helpBtn) {
-    helpBtn.onclick = () => {
-        window.parent.postMessage({type: "open_help"}, "*");
-    };
-}
+document.addEventListener("DOMContentLoaded", function() {
+    const interval = setInterval(() => {
+        const helpBtn = document.getElementById("floating-help-btn");
+        if (helpBtn) {
+            helpBtn.onclick = () => {
+                window.postMessage({type: "open_help"}, "*");
+            };
+            clearInterval(interval);
+        }
+    }, 300);
+});
 </script>
 """
 st.markdown(help_js, unsafe_allow_html=True)
@@ -138,10 +143,11 @@ listener_js = """
 <script>
 window.addEventListener("message", (event) => {
     if (event.data.type === "open_help") {
-        window.parent.streamlitSendMessage({
+        const streamlitEvent = {
             type: "streamlit:setComponentValue",
             value: true
-        });
+        };
+        window.parent.postMessage(streamlitEvent, "*");
     }
 });
 </script>
@@ -217,6 +223,8 @@ st.markdown(
 if st.button(" ", key="togglebtn", help=""):
     st.session_state.show_controls = not st.session_state.show_controls
     st.rerun()
+
+
 
 
 # ============================================================
