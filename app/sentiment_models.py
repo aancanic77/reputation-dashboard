@@ -74,6 +74,7 @@ logreg_model = LogisticRegressionSentiment()
 # ============================================================
 vader = VaderAnalyzer()
 
+@st.cache_data(show_spinner=False)
 def predict_vader(text):
     vs = vader.polarity_scores(text)
     compound = vs["compound"]
@@ -100,6 +101,7 @@ def predict_vader(text):
 # TRANSFORMER MOCK (compatibil cu UI-ul existent)
 # ============================================================
 
+@st.cache_data(show_spinner=False)
 def predict_transformer(text: str) -> Dict:
     tokens = text.split()
     n = len(tokens)
@@ -122,6 +124,7 @@ def predict_transformer(text: str) -> Dict:
 # ============================================================
 # PUBLIC API
 # ============================================================
+@st.cache_data(show_spinner=False)
 def predict_logreg(text: str) -> Dict:
     return logreg_model.predict(text)
 
