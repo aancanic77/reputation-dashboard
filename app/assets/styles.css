@@ -280,7 +280,7 @@ button[data-testid="stBaseButton-togglebtn"] {
 
 button[data-testid="stBaseButton-secondary"],
 button[data-testid="baseButton-secondary"] {
-    display: none !important;
+   # display: none !important;
 }
 
 /* ============================================================
@@ -323,11 +323,15 @@ button[data-testid="baseButton-secondary"] {
 .floating-help-wrapper button:hover {
     transform: scale(1.05);
 }
-/* DEBUG: arată toate butoanele secondary și primary */
-button[kind] {
-    opacity: 1 !important;
-    color: black !important;
-    background: #e0e0e0 !important;
-    display: block !important;
+/* PRIMARY BUTTONS — vizibile, moderne */
+button[kind="primary"] {
+    background-color: #0A66C2 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12) !important;
 }
+
 
