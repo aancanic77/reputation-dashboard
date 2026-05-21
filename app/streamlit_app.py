@@ -116,7 +116,7 @@ render_header()
 help_container = st.container()
 
 with help_container:
-    if st.button("💬", key="help_btn"):
+    if st.button("💬", key="help_btn", type="primary"):
         st.session_state.help_open = True
 
 # CSS pentru poziționare plutitoare
