@@ -15,6 +15,27 @@ from visualization import (
 )
 
 
+# ============================================================
+# CACHE pentru tab3 — foarte important în Streamlit Cloud
+# ============================================================
+
+@st.cache_data(show_spinner=False)
+def cached_logreg(text):
+    return predict_logreg(text)
+
+@st.cache_data(show_spinner=False)
+def cached_vader(text):
+    return predict_vader(text)
+
+@st.cache_data(show_spinner=False)
+def cached_transformer(text):
+    return predict_transformer(text)
+
+@st.cache_data(show_spinner=False)
+def cached_word_contrib(text):
+    return predict_logreg_word_contrib(text)
+
+
 def render_tab3():
     lang = st.session_state["lang"]
 
@@ -38,7 +59,6 @@ def render_tab3():
         unsafe_allow_html=True,
     )
 
-    # Exemplele rămân în ENGLEZĂ — NU se traduc
     example_options = [
         "I love Google products, they are amazing and reliable",
         "I hate slow updates and bugs in software",
@@ -69,6 +89,12 @@ def render_tab3():
             st.warning(t("tab3_empty_text_warning", lang))
             return
 
+        # LIMITĂ DE SIGURANȚĂ
+        tokens = user_text.split()
+        if len(tokens) > 40:
+            st.error("Textul este prea lung pentru vizualizarea attention heatmap. Limita este 40 de cuvinte.")
+            return
+
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(
             f'<h2 class="section-title">{t("tab3_results_section", lang)}</h2>',
@@ -80,7 +106,7 @@ def render_tab3():
         # ============================================================
         st.markdown(f"### {t('tab3_logreg_title', lang)}")
 
-        logreg_res = predict_logreg(user_text)
+        logreg_res = cached_logreg(user_text)
         lr_label = logreg_res["label"]
 
         color_class = (
@@ -95,7 +121,7 @@ def render_tab3():
         </div>
         """, unsafe_allow_html=True)
 
-        contrib_df = predict_logreg_word_contrib(user_text)
+        contrib_df = cached_word_contrib(user_text)
         fig_lr = plot_word_contributions(
             contrib_df["token"].tolist(),
             contrib_df["contribution"].tolist(),
@@ -111,7 +137,7 @@ def render_tab3():
         # ============================================================
         st.markdown(f"### {t('tab3_vader_title', lang)}")
 
-        vader_res = predict_vader(user_text)
+        vader_res = cached_vader(user_text)
         vader_label = vader_res["label"]
 
         color_class = (
@@ -144,7 +170,7 @@ def render_tab3():
         # ============================================================
         st.markdown(f"### {t('tab3_transformer_title', lang)}")
 
-        transf_res = predict_transformer(user_text)
+        transf_res = cached_transformer(user_text)
         t_label = transf_res["label"]
 
         color_class = (
@@ -160,9 +186,14 @@ def render_tab3():
         """, unsafe_allow_html=True)
 
         tokens = transf_res["tokens"]
+
+        # LIMITĂ HEATMAP
         if len(tokens) > 1:
-            fig_heatmap = plot_transformer_attention_heatmap(tokens, transf_res["attention"])
-            st.pyplot(fig_heatmap, use_container_width=True)
+            if len(tokens) <= 30:
+                fig_heatmap = plot_transformer_attention_heatmap(tokens, transf_res["attention"])
+                st.pyplot(fig_heatmap, use_container_width=True)
+            else:
+                st.warning("Heatmap-ul este dezactivat pentru texte mai lungi de 30 de cuvinte.")
         else:
             st.info(t("tab3_longer_sentence_info", lang))
 
