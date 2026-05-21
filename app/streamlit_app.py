@@ -104,10 +104,6 @@ st.markdown(
 #  GLOBAL HEADER
 # ============================================================
 render_header()
-# ============================================================
-#  GLOBAL HEADER
-# ============================================================
-render_header()
 
 
 # ============================================================
@@ -182,20 +178,6 @@ def help_dialog():
 if st.session_state.help_open:
     help_dialog()
     st.session_state.help_open = False
-
-
-# ============================================================
-#  HIDDEN STREAMLIT BUTTON (REAL TOGGLE)
-# ============================================================
-if st.button(" ", key="togglebtn", help=""):
-    st.session_state.show_controls = not st.session_state.show_controls
-    st.rerun()
-
-
-# ============================================================
-#  SIDEBAR CONTROLS (conditionally visible)
-# ============================================================
-
 # ============================================================
 #  SIDEBAR CONTROLS (conditionally visible)
 # ============================================================
