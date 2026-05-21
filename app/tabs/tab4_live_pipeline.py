@@ -271,19 +271,36 @@ def render_tab4(rows_slider: int, lang: str):
     steps[3]["status"] = "Running"
     update_step(placeholders[3], **steps[3])
     progress.progress(70)
-
-    mapped_df["lr_label"] = mapped_df["text"].apply(lambda t: predict_logreg(t)["label"])
-    mapped_df["vader_label"] = mapped_df["text"].apply(lambda t: predict_vader(t)["label"])
-
-    # DEMO MODE — dezactivăm Transformer
+    
+    # Cache pentru viteză
+    @st.cache_data(show_spinner=False)
+    def cached_logreg(text):
+        return predict_logreg(text)["label"]
+    
+    @st.cache_data(show_spinner=False)
+    def cached_vader(text):
+        return predict_vader(text)["label"]
+    
+    @st.cache_data(show_spinner=False)
+    def cached_transformer(text):
+        return predict_transformer(text)["label"]
+    
+    # Logistic Regression
+    mapped_df["lr_label"] = mapped_df["text"].apply(cached_logreg)
+    
+    # VADER
+    mapped_df["vader_label"] = mapped_df["text"].apply(cached_vader)
+    
+    # Transformer (mock)
     if DEMO_MODE:
         mapped_df["dl_label"] = "disabled"
     else:
-        mapped_df["dl_label"] = mapped_df["text"].apply(lambda t: predict_transformer(t)["label"])
-
+        mapped_df["dl_label"] = mapped_df["text"].apply(cached_transformer)
+    
     steps[3]["status"] = "Completed"
     update_step(placeholders[3], **steps[3])
     progress.progress(85)
+
 
     # -------------------------------
     #  STEP 5 — RESULT
