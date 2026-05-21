@@ -12,9 +12,9 @@ def app_guide_answer(question: str) -> str:
     q = question.lower()
 
     guides = {
-        "dashboard": "📊 **Dashboard** shows sentiment analysis across 3 ML models (Logistic Regression, VADER, Transformer). Use filters to analyze Apple, Google, or Samsung reputation.",
-        "logistic regression": "🤖 **Logistic Regression (3-class)** is a balanced machine learning model trained on TF-IDF vectors. It classifies comments as Positive, Negative, or Neutral.",
-        "vader": "⚖️ **VADER** is a rule-based sentiment analyzer optimized for social media text.",
+        "dashboard": "📊 **Dashboard** shows sentiment analysis across 3 ML models (Logistic Regression, VADER, Transformer).",
+        "logistic regression": "🤖 **Logistic Regression (3-class)** is a balanced ML model using TF-IDF vectors.",
+        "vader": "⚖️ **VADER** is a rule-based sentiment analyzer optimized for social media.",
         "transformer": "🧠 **Transformer model** (DistilBERT) provides deeper contextual sentiment understanding.",
         "live pipeline": "🔄 **Live Pipeline** demos the full ETL: Collect → Extract → Map → Analyze → Result.",
         "proof of source": "📁 **Proof of Source** shows real Reddit comments behind each metric.",
@@ -99,17 +99,6 @@ render_header()
 
 
 # ============================================================
-#  FLOATING HELP BUTTON — SAFE VERSION
-# ============================================================
-st.markdown('<div class="floating-help-wrapper">', unsafe_allow_html=True)
-help_clicked = st.button("💬", key="help_btn")
-st.markdown('</div>', unsafe_allow_html=True)
-
-if help_clicked:
-    st.session_state.help_open = True
-
-
-# ============================================================
 #  TRANSLATION FUNCTION
 # ============================================================
 def translate_to_ro(text: str) -> str:
@@ -161,16 +150,19 @@ def help_dialog():
         st.markdown(f"### Răspuns\n{answer}")
 
 
-if st.session_state.help_open:
-    help_dialog()
-    st.session_state.help_open = False
-
-
 # ============================================================
-#  SIDEBAR CONTROLS
+#  SIDEBAR CONTROLS (with HELP BUTTON)
 # ============================================================
 if st.session_state.show_controls:
     sidebar_values = render_sidebar()
+
+    # -----------------------------
+    # HELP BUTTON IN SIDEBAR
+    # -----------------------------
+    st.markdown("---")
+    if st.button("💬 Help", key="help_btn_sidebar"):
+        st.session_state.help_open = True
+
 else:
     sidebar_values = {
         "dashboard_method": "Logistic Regression 3-class balanced",
@@ -180,6 +172,12 @@ else:
         "dashboard_refresh": False,
         "lang": st.session_state.lang,
     }
+
+# Trigger dialog
+if st.session_state.help_open:
+    help_dialog()
+    st.session_state.help_open = False
+
 
 dashboard_method = sidebar_values["dashboard_method"]
 company_filter = sidebar_values["company_filter"]
