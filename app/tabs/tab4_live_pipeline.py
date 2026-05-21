@@ -20,7 +20,7 @@ STATUS_COLORS = {
 }
 
 # ============================================================
-# CACHE FUNCTIONS — la nivel de modul (obligatoriu în Streamlit)
+# CACHE FUNCTIONS
 # ============================================================
 
 @st.cache_data(show_spinner=False)
@@ -37,7 +37,7 @@ def cached_transformer_label(text: str) -> str:
 
 
 # ============================================================
-# TIME AGO — versiunea robustă (nu mai dă unknown)
+# TIME AGO — versiunea robustă
 # ============================================================
 
 def time_ago(ts):
@@ -264,11 +264,6 @@ def render_tab4(rows_slider: int, lang: str):
     update_step(placeholders[3], **steps[3])
     progress.progress(85)
 
-    # DEBUG
-    st.subheader("DEBUG — Structura mapped_df")
-    st.write("Coloane:", list(mapped_df.columns))
-    st.write(mapped_df.head())
-
     # ============================
     # STEP 5 — RESULT
     # ============================
@@ -279,10 +274,15 @@ def render_tab4(rows_slider: int, lang: str):
     try:
         final_df = mapped_df.copy()
 
+        # 🔥 TIMESTAMP FIX — created_utc rămâne numeric
+        final_df["created_utc"] = pd.to_numeric(final_df["created_utc"], errors="coerce")
+
+        # dată frumoasă
         final_df["created_at"] = pd.to_datetime(
             final_df["created_utc"], unit="s", errors="coerce"
         ).dt.strftime("%Y-%m-%d %H:%M:%S")
 
+        # timp relativ
         final_df["time_ago"] = final_df["created_utc"].apply(time_ago)
 
         steps[4]["status"] = "Completed"
