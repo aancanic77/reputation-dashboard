@@ -78,7 +78,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # HELP BUTTON (INTEGRAT AICI)
+    # HELP BUTTON — FIX FINAL
     # ============================
     st.sidebar.markdown("---")
     if st.sidebar.button("💬 Help", key="help_btn_sidebar"):
