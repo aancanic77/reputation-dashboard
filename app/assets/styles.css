@@ -323,3 +323,11 @@ button[data-testid="baseButton-secondary"] {
 .floating-help-wrapper button:hover {
     transform: scale(1.05);
 }
+/* DEBUG: arată toate butoanele secondary și primary */
+button[kind] {
+    opacity: 1 !important;
+    color: black !important;
+    background: #e0e0e0 !important;
+    display: block !important;
+}
+
