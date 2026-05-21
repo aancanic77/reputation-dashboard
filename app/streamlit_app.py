@@ -40,7 +40,7 @@ st.set_page_config(
 )
 
 
-from app.utils import load_reddit_dataframe
+from utils import load_reddit_dataframe
 
 
 
