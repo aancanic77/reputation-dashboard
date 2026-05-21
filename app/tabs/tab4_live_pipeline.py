@@ -284,29 +284,39 @@ def render_tab4(rows_slider: int, lang: str):
                     return float(value)
             except:
                 pass
-
+        
             # 2. String → curățăm
             if isinstance(value, str):
                 v = value.strip()
-
+        
                 # 2a. Numeric în string
                 if v.replace(".", "", 1).isdigit():
                     return float(v)
-
-                # 2b. Dată formatată
+        
+                # 2b. Dată formatată (detectăm prin '-' și ':')
+                if "-" in v and ":" in v:
+                    try:
+                        dt = pd.to_datetime(v, errors="coerce", utc=True)
+                        if pd.notnull(dt):
+                            return dt.timestamp()
+                    except:
+                        pass
+        
+                # 2c. Orice alt string → încercăm generic
                 try:
                     dt = pd.to_datetime(v, errors="coerce", utc=True)
                     if pd.notnull(dt):
                         return dt.timestamp()
                 except:
                     pass
-
+        
             # 3. datetime
             if isinstance(value, datetime):
                 return value.replace(tzinfo=timezone.utc).timestamp()
-
+        
             # 4. fallback
             return float("nan")
+
 
         final_df["created_utc"] = final_df["created_utc"].apply(fix_created_utc)
 
