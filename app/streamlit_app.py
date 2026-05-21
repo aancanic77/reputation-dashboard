@@ -145,8 +145,8 @@ def help_dialog():
 
     if st.button("Trimite", key="help_send_btn", type="primary"):
         answer = app_guide_answer(q)
-        if lang == "RO":
-            answer = translate_to_ro(answer)
+        #if lang == "RO":
+            #answer = translate_to_ro(answer)
         st.markdown(f"### Răspuns\n{answer}")
 
 
