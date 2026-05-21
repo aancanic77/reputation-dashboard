@@ -1,18 +1,17 @@
 # ============================================================
 # sentiment_models.py — versiunea finală completă
 # Compatibil 100% cu tab3_interactive_demo.py
+# Fără Torch, fără Transformers, fără modele mari
 # ============================================================
 
 from typing import Dict
 import numpy as np
 import pandas as pd
-import torch
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as VaderAnalyzer
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
 # ============================================================
@@ -94,68 +93,6 @@ def predict_vader(text):
         "tokens": tokens,
         "scores": scores,
     }
-
-
-# ============================================================
-# TRANSFORMER WITH ATTENTION (nlptown)
-# ============================================================
-# ============================================================
-# TRANSFORMER WITH ATTENTION (nlptown) — LAZY LOADING
-# ============================================================
-
-MODEL_NAME = "nlptown/bert-base-multilingual-uncased-sentiment"
-
-_tokenizer = None
-_model = None
-
-def get_transformer():
-    global _tokenizer, _model
-
-    if _tokenizer is None or _model is None:
-        _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        _model = AutoModelForSequenceClassification.from_pretrained(
-            MODEL_NAME,
-            output_attentions=True
-        )
-
-    return _tokenizer, _model
-
-
-def predict_transformer(text):
-    tokenizer, model = get_transformer()
-
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-
-    logits = outputs.logits
-    attentions = outputs.attentions
-
-    probs = torch.softmax(logits, dim=-1)[0]
-    score = float(torch.max(probs))
-    label_id = int(torch.argmax(probs))
-
-    if label_id <= 1:
-        label = "negative"
-    elif label_id == 2:
-        label = "neutral"
-    else:
-        label = "positive"
-
-    tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
-
-    last_layer = attentions[-1]
-    mean_attention = last_layer.mean(dim=1)
-    attention_matrix = mean_attention[0].cpu().numpy()
-
-    return {
-        "label": label,
-        "score": score,
-        "tokens": tokens,
-        "attention": attention_matrix,
-    }
-
 
 
 # ============================================================
