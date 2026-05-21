@@ -161,10 +161,11 @@ def translate_to_ro(text: str) -> str:
 def help_dialog():
     lang = st.session_state.get("lang", "RO")
 
-    # Text explicativ
     st.markdown("""
     ### Cum te pot ajuta?
-    Îți pot explica:
+
+    Îți pot explica următoarele secțiuni ale aplicației:
+
     - Dashboard  
     - Logistic Regression  
     - VADER  
@@ -176,10 +177,8 @@ def help_dialog():
     Scrie mai jos ce vrei să afli.
     """)
 
-    # Input
     q = st.text_input("Întrebare", key="help_question_input")
 
-    # Buton TRIMITE — forțat PRIMARY
     send = st.button("Trimite", key="help_send_btn", type="primary")
 
     if send:
@@ -189,6 +188,7 @@ def help_dialog():
             answer = translate_to_ro(answer)
 
         st.markdown(f"### Răspuns\n{answer}")
+
 
 # ============================================================
 #  SIDEBAR CONTROLS (conditionally visible)
