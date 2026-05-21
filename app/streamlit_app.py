@@ -105,7 +105,6 @@ st.markdown(
 # ============================================================
 render_header()
 
-
 # ============================================================
 #  FLOATING HELP BUTTON (HTML ONLY — CSS ESTE ÎN style.css)
 # ============================================================
@@ -114,13 +113,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Session state
 if "help_open" not in st.session_state:
     st.session_state.help_open = False
 
 
 # ============================================================
-#  JS: CLICK → OPEN POPUP (COMPATIBIL CU STREAMLIT CLOUD)
+#  JS: CLICK → SET STREAMLIT SESSION STATE DIRECT
 # ============================================================
 help_js = """
 <script>
@@ -129,31 +127,41 @@ document.addEventListener("DOMContentLoaded", function() {
         const helpBtn = document.getElementById("floating-help-btn");
         if (helpBtn) {
             helpBtn.onclick = () => {
-                window.postMessage({type: "open_help"}, "*");
+                const streamlitEvent = new CustomEvent("streamlit:message", {
+                    detail: {type: "help_open", value: true}
+                });
+                window.dispatchEvent(streamlitEvent);
             };
             clearInterval(interval);
         }
-    }, 300);
+    }, 200);
 });
 </script>
 """
 st.markdown(help_js, unsafe_allow_html=True)
 
+
+# ============================================================
+#  PYTHON LISTENER (SAFE)
+# ============================================================
 listener_js = """
 <script>
-window.addEventListener("message", (event) => {
-    if (event.data.type === "open_help") {
-        const streamlitEvent = {
+window.addEventListener("streamlit:message", (event) => {
+    if (event.detail.type === "help_open") {
+        window.streamlitSendMessage({
             type: "streamlit:setComponentValue",
             value: true
-        };
-        window.parent.postMessage(streamlitEvent, "*");
+        });
     }
 });
 </script>
 """
 st.markdown(listener_js, unsafe_allow_html=True)
 
+
+# ============================================================
+#  TRIGGER PYTHON STATE
+# ============================================================
 if st.session_state.get("_component_value"):
     st.session_state.help_open = True
     st.session_state["_component_value"] = False
@@ -164,15 +172,13 @@ if st.session_state.get("_component_value"):
 # ============================================================
 def translate_to_ro(text: str) -> str:
     import requests
-    headers = {"Authorization": f"Bearer {st.secrets['HF_API_KEY']}"}
+    headers = {"Authorization": f"Bearer " + st.secrets["HF_API_KEY"]}
     payload = {"inputs": text}
-
     r = requests.post(
         "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ro",
         headers=headers,
         json=payload
     )
-
     try:
         return r.json()[0]["translation_text"]
     except:
@@ -190,7 +196,7 @@ def help_dialog():
 
     q = st.text_input("Întrebare")
     if st.button("Trimite"):
-        answer = app_guide_answer(q)  # răspuns EN
+        answer = app_guide_answer(q)
 
         if lang == "RO":
             answer = translate_to_ro(answer)
@@ -198,23 +204,9 @@ def help_dialog():
         st.write(answer)
 
 
-# Trigger dialog
 if st.session_state.help_open:
     help_dialog()
     st.session_state.help_open = False
-
-
-# ============================================================
-#  FLOATING ROUND BUTTON (HTML)
-# ============================================================
-st.markdown(
-    """
-    <div class="toggle-controls-btn" onclick="document.querySelector('button[data-testid=togglebtn]').click()">
-        ⚙️
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 
 
 # ============================================================
