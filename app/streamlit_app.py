@@ -51,7 +51,7 @@ from tabs.tab2_ai_insights import render_tab2
 from tabs.tab3_interactive_demo import render_tab3
 from tabs.tab4_live_pipeline import render_tab4
 from tabs.tab5_proof_of_source import render_tab5
-
+st.write("Secrets loaded:", list(st.secrets.keys()))
 # UI components
 from components.layout import render_base_styles
 from components.header import render_header
