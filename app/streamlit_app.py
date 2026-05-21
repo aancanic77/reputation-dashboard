@@ -1,10 +1,9 @@
 import os
 from dotenv import load_dotenv
-
-load_dotenv()  # ← ÎN PRIMUL RÂND
+load_dotenv()
 
 import streamlit as st
-
+import pandas as pd
 
 # ============================================================
 #  GUIDE ASSISTANT HELPER
@@ -15,12 +14,12 @@ def app_guide_answer(question: str) -> str:
     guides = {
         "dashboard": "📊 **Dashboard** shows sentiment analysis across 3 ML models (Logistic Regression, VADER, Transformer). Use filters to analyze Apple, Google, or Samsung reputation.",
         "logistic regression": "🤖 **Logistic Regression (3-class)** is a balanced machine learning model trained on TF-IDF vectors. It classifies comments as Positive, Negative, or Neutral.",
-        "vader": "⚖️ **VADER** (Valence Aware Dictionary and sEntiment Reasoner) is a rule-based sentiment analyzer optimized for social media text. Fast and interpretable!",
-        "transformer": "🧠 **Transformer model** uses deep learning (DistilBERT) for nuanced sentiment understanding. More accurate but slower than rule-based approaches.",
-        "live pipeline": "🔄 **Live Pipeline** demos the full 5-step ETL: Collect → Extract → Map → Analyze (3 models) → Result. Shows real-time processing.",
-        "proof of source": "📁 **Proof of Source** validates findings by showing actual Reddit comments behind each dashboard metric. Ensures transparency and academic rigor.",
-        "ai insights": "💡 **AI Insights** uses LLM (Groq/LangChain) to generate marketing intelligence and contextual interpretations of sentiment trends.",
-        "help": "👋 Hi! Ask me about Dashboard, Logistic Regression, VADER, Transformer, Live Pipeline, Proof of Source, or AI Insights. I'm here to help!",
+        "vader": "⚖️ **VADER** is a rule-based sentiment analyzer optimized for social media text.",
+        "transformer": "🧠 **Transformer model** (DistilBERT) provides deeper contextual sentiment understanding.",
+        "live pipeline": "🔄 **Live Pipeline** demos the full ETL: Collect → Extract → Map → Analyze → Result.",
+        "proof of source": "📁 **Proof of Source** shows real Reddit comments behind each metric.",
+        "ai insights": "💡 **AI Insights** uses LLMs to generate marketing intelligence.",
+        "help": "👋 Ask me about Dashboard, Logistic Regression, VADER, Transformer, Live Pipeline, Proof of Source, or AI Insights.",
     }
 
     for key, answer in guides.items():
@@ -39,20 +38,17 @@ st.set_page_config(
     page_icon="🧠",
 )
 
-
+# ============================================================
+#  IMPORTS
+# ============================================================
 from utils import load_reddit_dataframe
-
-
-
-# Tabs
 from tab0_home import render_home
 from tabs.tab_dashboard import render_dashboard
 from tabs.tab2_ai_insights import render_tab2
 from tabs.tab3_interactive_demo import render_tab3
 from tabs.tab4_live_pipeline import render_tab4
 from tabs.tab5_proof_of_source import render_tab5
-#st.write("Secrets loaded:", list(st.secrets.keys()))
-# UI components
+
 from components.layout import render_base_styles
 from components.header import render_header
 from components.footer import render_footer
@@ -77,7 +73,7 @@ if "help_open" not in st.session_state:
 
 
 # ============================================================
-#  LANDING PAGE (NO SIDEBAR)
+#  LANDING PAGE
 # ============================================================
 if not st.session_state.entered:
     render_home()
@@ -91,11 +87,7 @@ st.session_state["_components_styles_loaded"] = False
 render_base_styles()
 
 st.markdown(
-    """
-    <script>
-    document.body.classList.remove('landing-page');
-    </script>
-    """,
+    "<script>document.body.classList.remove('landing-page');</script>",
     unsafe_allow_html=True,
 )
 
@@ -107,55 +99,39 @@ render_header()
 
 
 # ============================================================
-#  FLOATING HELP BUTTON (STREAMLIT BUTTON + CSS)
+#  FLOATING HELP BUTTON — SAFE VERSION
 # ============================================================
-help_container = st.container()
+st.markdown('<div class="floating-help-wrapper">', unsafe_allow_html=True)
+help_clicked = st.button("💬", key="help_btn")
+st.markdown('</div>', unsafe_allow_html=True)
 
-with help_container:
-    if st.button("💬", key="help_btn", type="primary"):
-        st.session_state.help_open = True
-
-# CSS pentru poziționare plutitoare
-st.markdown("""
-<style>
-div[data-testid="stButton"][key="help_btn"] {
-    position: fixed;
-    bottom: 22px;
-    right: 22px;
-    z-index: 999999;
-}
-div[data-testid="stButton"][key="help_btn"] > button {
-    background: linear-gradient(135deg, #FF8A00 0%, #FFC300 100%) !important;
-    color: white !important;
-    border-radius: 999px !important;
-    padding: 16px 22px !important;
-    font-size: 22px !important;
-    font-weight: 700 !important;
-    box-shadow: 0 14px 35px rgba(255, 138, 0, 0.35) !important;
-}
-</style>
-""", unsafe_allow_html=True)
+if help_clicked:
+    st.session_state.help_open = True
+    st.rerun()
 
 
 # ============================================================
-#  TRANSLATION FUNCTION (EN → RO)
+#  TRANSLATION FUNCTION
 # ============================================================
 def translate_to_ro(text: str) -> str:
     import requests
-    headers = {"Authorization": f"Bearer " + st.secrets["HF_API_KEY"]}
+    headers = {"Authorization": f"Bearer {st.secrets['HF_API_KEY']}"}
     payload = {"inputs": text}
+
     r = requests.post(
         "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ro",
         headers=headers,
         json=payload
     )
+
     try:
         return r.json()[0]["translation_text"]
     except:
         return text
 
+
 # ============================================================
-#  POPUP DIALOG — versiunea completă și funcțională
+#  HELP DIALOG
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
@@ -179,19 +155,20 @@ def help_dialog():
 
     q = st.text_input("Întrebare", key="help_question_input")
 
-    send = st.button("Trimite", key="help_send_btn", type="primary")
-
-    if send:
+    if st.button("Trimite", key="help_send_btn", type="primary"):
         answer = app_guide_answer(q)
-
         if lang == "RO":
             answer = translate_to_ro(answer)
-
         st.markdown(f"### Răspuns\n{answer}")
 
 
+if st.session_state.help_open:
+    help_dialog()
+    st.session_state.help_open = False
+
+
 # ============================================================
-#  SIDEBAR CONTROLS (conditionally visible)
+#  SIDEBAR CONTROLS
 # ============================================================
 if st.session_state.show_controls:
     sidebar_values = render_sidebar()
@@ -214,25 +191,18 @@ dashboard_refresh = sidebar_values["dashboard_refresh"]
 
 
 # ============================================================
-#  LOAD BASE DATA (CACHED)
+#  LOAD BASE DATA
 # ============================================================
 @st.cache_data(show_spinner=False)
 def get_base_df_full():
     df = load_reddit_dataframe()
-    
+
     if df is None or df.empty:
         st.warning(
-            "⚠️ Unable to load data from database. Using mock data for demonstration.\n\n"
-            "**Possible causes:**\n"
-            "- Database is not running or unreachable\n"
-            "- Connection credentials are incorrect\n"
-            "- For Neon connections: ensure you're using the unpooled endpoint (not the pooler endpoint)\n"
-            "- Check that `.env` contains the correct `PG_DSN`\n\n"
-            "**To debug:** Run `python test_db_fix.py` from the project root"
+            "⚠️ Unable to load data from database. Using mock data for demonstration."
         )
-        # Return empty dataframe - dashboard will handle gracefully
         return pd.DataFrame()
-    
+
     return df
 
 
@@ -244,7 +214,7 @@ if base_df is not None and company_filter != "All":
 
 
 # ============================================================
-#  PAGE CONTENT (TABS)
+#  TABS
 # ============================================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     [
