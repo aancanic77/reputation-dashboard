@@ -104,67 +104,41 @@ st.markdown(
 #  GLOBAL HEADER
 # ============================================================
 render_header()
-
 # ============================================================
-#  FLOATING HELP BUTTON (HTML ONLY — CSS ESTE ÎN style.css)
+#  GLOBAL HEADER
 # ============================================================
-st.markdown(
-    '<div id="floating-help-btn">💬 Help</div>',
-    unsafe_allow_html=True
-)
-
-if "help_open" not in st.session_state:
-    st.session_state.help_open = False
+render_header()
 
 
 # ============================================================
-#  JS: CLICK → SET STREAMLIT SESSION STATE DIRECT
+#  FLOATING HELP BUTTON (STREAMLIT BUTTON + CSS)
 # ============================================================
-help_js = """
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const interval = setInterval(() => {
-        const helpBtn = document.getElementById("floating-help-btn");
-        if (helpBtn) {
-            helpBtn.onclick = () => {
-                const streamlitEvent = new CustomEvent("streamlit:message", {
-                    detail: {type: "help_open", value: true}
-                });
-                window.dispatchEvent(streamlitEvent);
-            };
-            clearInterval(interval);
-        }
-    }, 200);
-});
-</script>
-"""
-st.markdown(help_js, unsafe_allow_html=True)
+help_container = st.container()
 
+with help_container:
+    if st.button("💬", key="help_btn"):
+        st.session_state.help_open = True
 
-# ============================================================
-#  PYTHON LISTENER (SAFE)
-# ============================================================
-listener_js = """
-<script>
-window.addEventListener("streamlit:message", (event) => {
-    if (event.detail.type === "help_open") {
-        window.streamlitSendMessage({
-            type: "streamlit:setComponentValue",
-            value: true
-        });
-    }
-});
-</script>
-"""
-st.markdown(listener_js, unsafe_allow_html=True)
-
-
-# ============================================================
-#  TRIGGER PYTHON STATE
-# ============================================================
-if st.session_state.get("_component_value"):
-    st.session_state.help_open = True
-    st.session_state["_component_value"] = False
+# CSS pentru poziționare plutitoare
+st.markdown("""
+<style>
+div[data-testid="stButton"][key="help_btn"] {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 999999;
+}
+div[data-testid="stButton"][key="help_btn"] > button {
+    background: linear-gradient(135deg, #FF8A00 0%, #FFC300 100%) !important;
+    color: white !important;
+    border-radius: 999px !important;
+    padding: 16px 22px !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 14px 35px rgba(255, 138, 0, 0.35) !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -204,6 +178,7 @@ def help_dialog():
         st.write(answer)
 
 
+# Deschide dialogul dacă help_open = True
 if st.session_state.help_open:
     help_dialog()
     st.session_state.help_open = False
@@ -217,7 +192,9 @@ if st.button(" ", key="togglebtn", help=""):
     st.rerun()
 
 
-
+# ============================================================
+#  SIDEBAR CONTROLS (conditionally visible)
+# ============================================================
 
 # ============================================================
 #  SIDEBAR CONTROLS (conditionally visible)
