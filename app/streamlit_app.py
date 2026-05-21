@@ -107,88 +107,95 @@ render_header()
 
 
 # ============================================================
-#  FLOATING GUIDE CHAT DIALOG
+#  FLOATING HELP BUTTON (HTML ONLY — CSS ESTE ÎN style.css)
 # ============================================================
-
-def render_guide_dialog():
-    lang = st.session_state["lang"]
-
-    with st.expander(t("help_dialog_title", lang), expanded=True):
-        st.info(t("help_intro_1", lang))
-        st.info(t("help_intro_2", lang))
-
-        with st.form("guide_chat_form", clear_on_submit=True):
-            guide_question = st.text_input(
-                t("help_input_label", lang),
-                placeholder=t("help_input_placeholder", lang),
-                label_visibility="collapsed",
-            )
-            submitted = st.form_submit_button(t("help_send_button", lang), use_container_width=True)
-
-        if submitted and guide_question.strip():
-            st.info(app_guide_answer(guide_question))
-
-
-# ============================================================
-#  FLOATING HELP BUTTON STYLING & RENDERING
-# ============================================================
-if st.button(
-    "💬 Help",
-    key="floating_help_button_main_unique",
-    type="primary",
-    use_container_width=False,
-):
-    st.session_state.help_open = not st.session_state.help_open
-    st.experimental_rerun()
-
-if st.session_state.help_open:
-    render_guide_dialog()
-
 st.markdown(
-    """
-    <style>
-    .help-fix-button {
-        font-size: 18px !important;
-    }
-    .help-dialog-card {
-        position: fixed !important;
-        right: 22px !important;
-        bottom: 92px !important;
-        z-index: 999998 !important;
-        max-width: 380px !important;
-        width: calc(100vw - 44px) !important;
-        border-radius: 24px !important;
-        background: rgba(255, 255, 255, 0.98) !important;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18) !important;
-        padding: 20px 24px !important;
-    }
-    </style>
-    <script>
-    const fixHelpButton = () => {
-        const buttons = [...document.querySelectorAll('button')];
-        const helpButton = buttons.find(b => b.innerText.trim() === '💬 Help');
-        if (helpButton) {
-            helpButton.style.position = 'fixed';
-            helpButton.style.right = '22px';
-            helpButton.style.bottom = '22px';
-            helpButton.style.zIndex = '999999';
-            helpButton.style.borderRadius = '999px';
-            helpButton.style.padding = '16px 24px';
-            helpButton.style.background = 'linear-gradient(135deg, #FF8A00 0%, #FFC300 100%)';
-            helpButton.style.color = 'white';
-            helpButton.style.boxShadow = '0 14px 35px rgba(255, 138, 0, 0.35)';
-            helpButton.style.fontWeight = '700';
-            helpButton.style.cursor = 'pointer';
-            helpButton.style.transition = 'transform 0.2s ease';
-        }
-    };
-    setTimeout(fixHelpButton, 100);
-    setTimeout(fixHelpButton, 500);
-    setInterval(fixHelpButton, 1000);
-    </script>
-    """,
-    unsafe_allow_html=True,
+    '<div id="floating-help-btn">💬 Help</div>',
+    unsafe_allow_html=True
 )
+
+# Session state
+if "help_open" not in st.session_state:
+    st.session_state.help_open = False
+
+
+# ============================================================
+#  JS: CLICK → OPEN POPUP
+# ============================================================
+help_js = """
+<script>
+const helpBtn = window.parent.document.getElementById("floating-help-btn");
+if (helpBtn) {
+    helpBtn.onclick = () => {
+        window.parent.postMessage({type: "open_help"}, "*");
+    };
+}
+</script>
+"""
+st.markdown(help_js, unsafe_allow_html=True)
+
+listener_js = """
+<script>
+window.addEventListener("message", (event) => {
+    if (event.data.type === "open_help") {
+        window.parent.streamlitSendMessage({
+            type: "streamlit:setComponentValue",
+            value: true
+        });
+    }
+});
+</script>
+"""
+st.markdown(listener_js, unsafe_allow_html=True)
+
+if st.session_state.get("_component_value"):
+    st.session_state.help_open = True
+    st.session_state["_component_value"] = False
+
+
+# ============================================================
+#  TRANSLATION FUNCTION (EN → RO)
+# ============================================================
+def translate_to_ro(text: str) -> str:
+    import requests
+    headers = {"Authorization": f"Bearer {st.secrets['HF_API_KEY']}"}
+    payload = {"inputs": text}
+
+    r = requests.post(
+        "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-ro",
+        headers=headers,
+        json=payload
+    )
+
+    try:
+        return r.json()[0]["translation_text"]
+    except:
+        return text
+
+
+# ============================================================
+#  POPUP DIALOG
+# ============================================================
+@st.dialog("Asistentul tău")
+def help_dialog():
+    lang = st.session_state.get("lang", "RO")
+
+    st.write("Întreabă-mă orice despre aplicație.")
+
+    q = st.text_input("Întrebare")
+    if st.button("Trimite"):
+        answer = app_guide_answer(q)  # răspuns EN
+
+        if lang == "RO":
+            answer = translate_to_ro(answer)
+
+        st.write(answer)
+
+
+# Trigger dialog
+if st.session_state.help_open:
+    help_dialog()
+    st.session_state.help_open = False
 
 
 # ============================================================
