@@ -1,3 +1,6 @@
+import reddit_pipeline
+st.write("USING REDDIT PIPELINE FROM:", reddit_pipeline.__file__)
+
 import time
 from datetime import datetime, timezone
 
