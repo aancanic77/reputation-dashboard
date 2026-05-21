@@ -348,3 +348,14 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
     opacity: 1 !important;
 }
 
+/* === FIX: Butoanele din dialog trebuie să fie vizibile === */
+.stDialog button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* === FIX: Nu ascunde butoanele secondary din dialog === */
+.stDialog button[data-testid="stBaseButton-secondary"] {
+    display: inline-flex !important;
+}
