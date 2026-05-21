@@ -274,8 +274,41 @@ def render_tab4(rows_slider: int, lang: str):
     try:
         final_df = mapped_df.copy()
 
-        # 🔥 TIMESTAMP FIX — created_utc rămâne numeric
-        final_df["created_utc"] = pd.to_numeric(final_df["created_utc"], errors="coerce")
+        # ============================================================
+        # AUTO-FIX pentru created_utc — normalizează orice format
+        # ============================================================
+        def fix_created_utc(value):
+            # 1. Numeric → OK
+            try:
+                if isinstance(value, (int, float)):
+                    return float(value)
+            except:
+                pass
+
+            # 2. String → curățăm
+            if isinstance(value, str):
+                v = value.strip()
+
+                # 2a. Numeric în string
+                if v.replace(".", "", 1).isdigit():
+                    return float(v)
+
+                # 2b. Dată formatată
+                try:
+                    dt = pd.to_datetime(v, errors="coerce", utc=True)
+                    if pd.notnull(dt):
+                        return dt.timestamp()
+                except:
+                    pass
+
+            # 3. datetime
+            if isinstance(value, datetime):
+                return value.replace(tzinfo=timezone.utc).timestamp()
+
+            # 4. fallback
+            return float("nan")
+
+        final_df["created_utc"] = final_df["created_utc"].apply(fix_created_utc)
 
         # dată frumoasă
         final_df["created_at"] = pd.to_datetime(
