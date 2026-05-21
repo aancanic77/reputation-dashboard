@@ -3,20 +3,20 @@ import pandas as pd
 from typing import List, Dict
 from utils import load_reddit_dataframe, ensure_mock_data
 
-# ============================================================
-# PUSHSHIFT ENDPOINT
-# ============================================================
-PUSHSHIFT_URL = "https://api.pushshift.io/reddit/comment/search/"
+REDDIT_BASE_URL = "https://www.reddit.com"
+HEADERS = {"User-Agent": "ReputationDashboard/0.1 by student"}
 
 # ============================================================
-# CONTROL MANUAL DEMO MODE
+# DEMO MODE automat dacă pică netul
 # ============================================================
-DEMO_MODE = False
+def internet_is_available() -> bool:
+    try:
+        requests.get("https://www.google.com", timeout=2)
+        return True
+    except:
+        return False
 
-# ============================================================
-# FLAG — dacă pipeline-ul a folosit fallback
-# ============================================================
-PIPELINE_USED_FALLBACK = False
+DEMO_MODE = not internet_is_available()
 
 # ============================================================
 # DEMO MOCK — EXACT 60 comentarii
@@ -37,38 +37,47 @@ def generate_demo_mock(n=60):
     return pd.DataFrame(rows)
 
 # ============================================================
-# FETCH COMMENTS FROM PUSHSHIFT
+# LIMITARE — DOAR ÎN DEMO MODE (60 rânduri)
 # ============================================================
-def fetch_reddit_comments(subreddits: List[str], limit: int = 50) -> pd.DataFrame:
-    global PIPELINE_USED_FALLBACK
+MAX_ROWS_DEMO = 60
+
+def limit_df(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
+    if df is None:
+        return pd.DataFrame()
+    
+    if DEMO_MODE:
+        limit = MAX_ROWS_DEMO
+    else:
+        limit = max_rows if max_rows is not None else None
+    
+    if limit and len(df) > limit:
+        return df.sample(n=limit, random_state=42).reset_index(drop=True)
+    return df.reset_index(drop=True)
+
+# ============================================================
+# FETCH REDDIT COMMENTS — EXACT CA ÎNAINTE
+# ============================================================
+def fetch_reddit_comments(subreddits: List[str], limit: int = 50, max_rows: int = None) -> pd.DataFrame:
 
     if DEMO_MODE:
-        PIPELINE_USED_FALLBACK = True
-        return generate_demo_mock(60)
+        return generate_demo_mock(MAX_ROWS_DEMO)
 
     rows: List[Dict] = []
 
     for sub in subreddits:
-        url = (
-            f"{PUSHSHIFT_URL}"
-            f"?subreddit={sub}"
-            f"&size={limit}"
-            f"&sort=desc"
-            f"&sort_type=created_utc"
-        )
-
+        url = f"{REDDIT_BASE_URL}/r/{sub}/comments.json?limit={limit}"
         try:
-            resp = requests.get(url, timeout=10)
+            resp = requests.get(url, headers=HEADERS, timeout=10)
             if resp.status_code != 200:
-                raise Exception("Pushshift returned non-200")
+                raise Exception("Reddit returned non-200")
 
-            data = resp.json().get("data", [])
-
-            for d in data:
+            data = resp.json()
+            for child in data.get("data", {}).get("children", []):
+                d = child.get("data", {})
                 rows.append(
                     {
                         "comment_id": d.get("id"),
-                        "text": d.get("body") or "",
+                        "text": d.get("body") or d.get("selftext") or "",
                         "subreddit": d.get("subreddit", sub),
                         "author": d.get("author"),
                         "created_utc": d.get("created_utc"),
@@ -76,54 +85,52 @@ def fetch_reddit_comments(subreddits: List[str], limit: int = 50) -> pd.DataFram
                 )
 
         except Exception:
-            PIPELINE_USED_FALLBACK = True
             return fallback_data()
 
     if not rows:
-        PIPELINE_USED_FALLBACK = True
-        return fallback_data()
+        return fallback_data(max_rows)
 
-    return pd.DataFrame(rows)
+    return limit_df(pd.DataFrame(rows), max_rows)
 
 # ============================================================
-# FALLBACK DATA
+# FALLBACK DATA — EXACT CA ÎNAINTE
 # ============================================================
-def fallback_data() -> pd.DataFrame:
-    global PIPELINE_USED_FALLBACK
-    PIPELINE_USED_FALLBACK = True
+def fallback_data(max_rows: int = None) -> pd.DataFrame:
 
-    # 1) DB fallback
+    if DEMO_MODE:
+        return generate_demo_mock(MAX_ROWS_DEMO)
+
     try:
         df = load_reddit_dataframe()
         if df is not None and len(df) > 0:
             df = df.rename(columns={"content": "text"})
-            return df[["comment_id", "text", "subreddit", "author", "created_utc"]]
+            df = df[["comment_id", "text", "subreddit", "author", "created_utc"]]
+            return limit_df(df, max_rows)
     except:
         pass
 
-    # 2) CSV fallback
     try:
         csv_path = ensure_mock_data()
-        df = pd.read_csv(csv_path)
-        return df
+        csv_limit = max_rows if max_rows else 1000
+        df = pd.read_csv(csv_path, nrows=csv_limit)
+        return limit_df(df, max_rows)
     except:
         pass
 
-    # 3) mock local
-    return generate_demo_mock(60)
+    return generate_demo_mock(MAX_ROWS_DEMO)
 
 # ============================================================
 # EXTRACT FIELDS
 # ============================================================
-def extract_fields(df: pd.DataFrame) -> pd.DataFrame:
+def extract_fields(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
     cols = ["comment_id", "text", "subreddit", "author", "created_utc"]
     existing = [c for c in cols if c in df.columns]
-    return df[existing].copy()
+    return limit_df(df[existing].copy(), max_rows)
 
 # ============================================================
 # MAP TO COMPANY
 # ============================================================
-def map_to_company(df: pd.DataFrame) -> pd.DataFrame:
+def map_to_company(df: pd.DataFrame, max_rows: int = None) -> pd.DataFrame:
     def _map(row):
         sub = str(row.get("subreddit", "")).lower()
         text = str(row.get("text", "")).lower()
@@ -138,27 +145,27 @@ def map_to_company(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.copy()
     df["company"] = df.apply(_map, axis=1)
-    return df[df["company"].isin(["Apple", "Google", "Samsung"])]
+    df = df[df["company"].isin(["Apple", "Google", "Samsung"])]
+    return limit_df(df, max_rows)
 
 # ============================================================
-# PIPELINE COMPLET
+# PIPELINE COMPLET — EXACT CA ÎNAINTE
 # ============================================================
 def run_reddit_pipeline_live(limit_per_sub: int = 20) -> pd.DataFrame:
-    global PIPELINE_USED_FALLBACK
-    PIPELINE_USED_FALLBACK = False
 
     subreddits = ["apple", "google", "samsung"]
+    
+    max_rows_limit = MAX_ROWS_DEMO if DEMO_MODE else (limit_per_sub * 3)
 
     try:
-        raw = fetch_reddit_comments(subreddits, limit_per_sub)
+        raw = fetch_reddit_comments(subreddits, limit_per_sub, max_rows_limit)
     except Exception:
-        PIPELINE_USED_FALLBACK = True
-        raw = fallback_data()
+        raw = fallback_data(max_rows_limit)
 
-    extracted = extract_fields(raw)
-    mapped = map_to_company(extracted)
+    extracted = extract_fields(raw, max_rows_limit)
+    mapped = map_to_company(extracted, max_rows_limit)
 
     if DEMO_MODE:
         mapped["dl_label"] = "disabled"
 
-    return mapped.reset_index(drop=True)
+    return limit_df(mapped, max_rows_limit)
