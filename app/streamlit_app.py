@@ -39,8 +39,11 @@ def help_llm(topic: str) -> str:
         )
         return response.choices[0].message["content"]
 
-    except:
-        return "⚠️ Groq indisponibil — folosesc explicația standard.\n\n" + app_guide_answer(topic)
+    except Exception:
+        # AICI era problema: trebuie returnat TEXTUL STATIC complet
+        static_text = app_guide_answer(topic)
+        return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
+
 # ============================================================
 #  PAGE CONFIG
 # ============================================================
