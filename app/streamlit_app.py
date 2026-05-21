@@ -22,7 +22,7 @@ def app_guide_answer(topic: str) -> str:
 
 
 # ============================================================
-#  ULTRA-RAPID GROQ HELP (cache + pre-prompt + bilingv)
+#  ULTRA-RAPID GROQ HELP (cache permanent + pre-prompt + bilingv)
 # ============================================================
 from groq import Groq
 
@@ -37,12 +37,12 @@ Rules:
 - If user language is English, answer in English.
 """
 
-@st.cache_data(show_spinner=False)
-def help_llm(topic: str, lang: str) -> str:
-    if not topic:
-        return "⚠️ Subiect invalid."
-
-    # prompt în funcție de limbă
+@st.cache_resource
+def cached_help(topic: str, lang: str) -> str:
+    """
+    Cache permanent: dacă Groq răspunde o dată, nu mai este apelat niciodată
+    pentru același topic + limbă.
+    """
     if lang == "RO":
         lang_prompt = f"Explică foarte pe scurt secțiunea '{topic}'."
     else:
@@ -75,6 +75,10 @@ def help_llm(topic: str, lang: str) -> str:
             return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
         else:
             return f"⚠️ Groq unavailable — using standard explanation.\n\n{static_text}"
+
+
+def help_llm(topic: str, lang: str) -> str:
+    return cached_help(topic, lang)
 
 
 # ============================================================
@@ -147,7 +151,7 @@ render_header()
 
 
 # ============================================================
-#  HELP DIALOG (cu Groq + fallback)
+#  HELP DIALOG (cu Groq + fallback + cache permanent)
 # ============================================================
 @st.dialog("Asistentul tău")
 def help_dialog():
