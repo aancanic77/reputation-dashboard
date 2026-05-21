@@ -151,18 +151,10 @@ def help_dialog():
 
 
 # ============================================================
-#  SIDEBAR CONTROLS (with HELP BUTTON)
+#  SIDEBAR CONTROLS (Help button is inside render_sidebar)
 # ============================================================
 if st.session_state.show_controls:
     sidebar_values = render_sidebar()
-
-    # -----------------------------
-    # HELP BUTTON IN SIDEBAR
-    # -----------------------------
-    st.markdown("---")
-    if st.button("💬 Help", key="help_btn_sidebar"):
-        st.session_state.help_open = True
-
 else:
     sidebar_values = {
         "dashboard_method": "Logistic Regression 3-class balanced",
