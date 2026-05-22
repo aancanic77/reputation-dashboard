@@ -81,15 +81,21 @@ TECHNICAL_TOPICS = {
 # ============================================================
 def ask_groq(topic: str, lang: str) -> str:
     lang = lang.upper()
+    normalized = topic.strip().lower()
 
-    # 1. Dacă topicul are explicație tehnică → returnăm direct
-    if topic in TECHNICAL_TOPICS:
-        return TECHNICAL_TOPICS[topic][lang]
+    # 1. CACHE INTELIGENT
+    if normalized in HELP_CACHE and lang in HELP_CACHE[normalized]:
+        return HELP_CACHE[normalized][lang]
 
-    # 2. Pentru restul topicurilor → folosim Groq
+    # 2. EXPLICAȚII TEHNICE FIXE
+    if normalized in TECHNICAL_TOPICS:
+        answer = TECHNICAL_TOPICS[normalized][lang]
+        HELP_CACHE.setdefault(normalized, {})[lang] = answer
+        return answer
+
+    # 3. APEL GROQ (doar dacă nu există în cache)
     client = get_groq_client()
 
-    # Prompt adaptat limbii
     if lang == "RO":
         user_prompt = f"Explică foarte pe scurt secțiunea '{topic}' în 2–3 fraze."
     else:
@@ -116,7 +122,13 @@ def ask_groq(topic: str, lang: str) -> str:
             max_tokens=150,
         )
 
-        return response.choices[0].message.content.strip()
+        answer = response.choices[0].message.content.strip()
+
+        # Salvăm în cache
+        HELP_CACHE.setdefault(normalized, {})[lang] = answer
+
+        return answer
 
     except Exception as e:
         return f"⚠️ Eroare Groq: {e}"
+
