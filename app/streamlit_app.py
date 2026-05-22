@@ -6,82 +6,6 @@ import streamlit as st
 import pandas as pd
 
 # ============================================================
-#  STATIC FALLBACK HELP
-# ============================================================
-def app_guide_answer(topic: str) -> str:
-    guides = {
-        "Dashboard": "Dashboard-ul arată analiza sentimentului pe modele ML.",
-        "Logistic Regression": "Model clasic ML pe TF-IDF, 3 clase echilibrate.",
-        "VADER": "Analizor rule-based optimizat pentru social media.",
-        "Transformer": "Model contextual (DistilBERT) pentru sentiment.",
-        "Live Pipeline": "ETL complet: colectare → extragere → mapare → analiză.",
-        "Proof of Source": "Afișează comentariile reale din Reddit folosite în metrici.",
-        "AI Insights": "Generează insight-uri marketing cu LLM.",
-    }
-    return guides.get(topic, "❓ Subiect necunoscut.")
-
-
-# ============================================================
-#  ULTRA-RAPID GROQ HELP (cache permanent + pre-prompt + bilingv)
-# ============================================================
-from groq import Groq
-
-HELP_SYSTEM_PROMPT = """
-You are a concise assistant for a sentiment dashboard.
-Rules:
-- Answer in 2–3 sentences maximum.
-- No marketing language.
-- No invented features.
-- Stay factual and minimal.
-- If user language is Romanian, answer in Romanian.
-- If user language is English, answer in English.
-"""
-
-@st.cache_resource
-def cached_help(topic: str, lang: str) -> str:
-    """
-    Cache permanent: dacă Groq răspunde o dată, nu mai este apelat niciodată
-    pentru același topic + limbă.
-    """
-    if lang == "RO":
-        lang_prompt = f"Explică foarte pe scurt secțiunea '{topic}'."
-    else:
-        lang_prompt = f"Briefly explain the '{topic}' section."
-
-    try:
-        client = Groq(api_key=st.secrets.get("GROQ_API_KEY"))
-        if client is None:
-            raise ValueError("Missing Groq key")
-
-        response = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[
-                {"role": "system", "content": HELP_SYSTEM_PROMPT},
-                {"role": "user", "content": lang_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=60
-        )
-
-        text = response.choices[0].message["content"].strip()
-        if not text:
-            raise ValueError("Empty response")
-
-        return text
-
-    except Exception:
-        static_text = app_guide_answer(topic)
-        if lang == "RO":
-            return f"⚠️ Groq indisponibil — folosesc explicația standard.\n\n{static_text}"
-        else:
-            return f"⚠️ Groq unavailable — using standard explanation.\n\n{static_text}"
-
-
-def help_llm(topic: str, lang: str) -> str:
-    return cached_help(topic, lang)
-
-
-# ============================================================
 #  PAGE CONFIG
 # ============================================================
 st.set_page_config(
@@ -100,7 +24,8 @@ from tabs.tab2_ai_insights import render_tab2
 from tabs.tab3_interactive_demo import render_tab3
 from tabs.tab4_live_pipeline import render_tab4
 from tabs.tab5_proof_of_source import render_tab5
-from help_llm import ask_groq
+
+from help_llm import ask_groq   # ← NOUL HELP
 
 from components.layout import render_base_styles
 from components.header import render_header
@@ -152,9 +77,8 @@ render_header()
 
 
 # ============================================================
-#  HELP DIALOG (cu Groq + fallback + cache permanent)
+#  HELP DIALOG (Groq direct)
 # ============================================================
-
 @st.dialog("Asistentul tău")
 def help_dialog():
     lang = st.session_state.lang
@@ -180,6 +104,7 @@ def help_dialog():
 
     if "help_answer" in st.session_state:
         st.markdown(f"### Explicație\n{st.session_state.help_answer}")
+
 
 # ============================================================
 #  SIDEBAR CONTROLS
