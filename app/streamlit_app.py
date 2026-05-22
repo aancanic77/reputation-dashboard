@@ -134,8 +134,10 @@ else:
 
 # Trigger dialog
 if st.session_state.help_open:
+    st.session_state.help_answer = ""   # ← GOLIM EXPLICAȚIA
     help_dialog()
     st.session_state.help_open = False
+
 
 
 dashboard_method = sidebar_values["dashboard_method"]
