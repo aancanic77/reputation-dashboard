@@ -6,6 +6,9 @@ from groq import Groq
 # ============================================================
 @st.cache_resource(show_spinner=False)
 def get_groq_client():
+    """
+    Creează o singură instanță Groq pentru întreaga aplicație.
+    """
     return Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 
