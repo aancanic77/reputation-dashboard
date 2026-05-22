@@ -1,11 +1,7 @@
 import streamlit as st
-from components.layout import render_base_styles
 from translations import t
 
-
 def render_sidebar() -> dict:
-    render_base_styles()
-
     # ============================
     # LIMBA CURENTĂ
     # ============================
@@ -81,11 +77,10 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # HELP BUTTON — AICI ESTE LOCUL CORECT
+    # HELP BUTTON
     # ============================
     st.sidebar.markdown("---")
     if st.sidebar.button("💬 Help", key="help_btn_sidebar", type="primary"):
-
         st.session_state.help_open = True
 
     # ============================
