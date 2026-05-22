@@ -26,7 +26,7 @@ from tabs.tab4_live_pipeline import render_tab4
 from tabs.tab5_proof_of_source import render_tab5
 
 from help_llm import ask_groq   # ← NOUL HELP
-st.write("CHEIA DIN SECRETS:", st.secrets.get("GROQ_API_KEY"))
+
 
 
 from components.layout import render_base_styles
@@ -181,7 +181,7 @@ with tab1:
         limit_rows=dashboard_limit_rows,
         refresh=dashboard_refresh,
     )
-
+    st.write("CHEIA DIN SECRETS:", st.secrets.get("GROQ_API_KEY"))
 with tab2:
     render_tab2()
 
