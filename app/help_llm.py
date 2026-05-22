@@ -1,31 +1,16 @@
 import streamlit as st
 from groq import Groq
 
-# ============================================================
-#  CLIENT GROQ (cache permanent)
-# ============================================================
 @st.cache_resource(show_spinner=False)
 def get_groq_client():
-    """
-    Creează o singură instanță Groq pentru întreaga aplicație.
-    """
     return Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-
-# ============================================================
-#  LLM HELP (Groq direct, rapid, stabil)
-# ============================================================
-@st.cache_data(show_spinner=False)
 def ask_groq(question: str) -> str:
-    """
-    Returnează un răspuns scurt de la Groq.
-    Cache-ul evită apelurile repetate pentru aceeași întrebare.
-    """
     client = get_groq_client()
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",   # MODEL CORECT
+            model="llama-3.1-8b-instant",
             messages=[
                 {
                     "role": "system",
@@ -44,5 +29,5 @@ def ask_groq(question: str) -> str:
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
-        return "⚠️ Groq este indisponibil momentan — încearcă din nou în câteva secunde."
+    except Exception as e:
+        return f"EROARE GROQ: {e}"
