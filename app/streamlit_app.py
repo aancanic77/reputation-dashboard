@@ -228,8 +228,9 @@ rows_slider = sidebar_values["rows_slider"]
 dashboard_limit_rows = sidebar_values["dashboard_limit_rows"]
 dashboard_refresh = sidebar_values["dashboard_refresh"]
 
-state.lang = sidebar_values["lang"]
 lang = state.lang
+
+
 
 
 # ============================================================
