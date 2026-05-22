@@ -153,13 +153,13 @@ render_header()
 # ============================================================
 #  HELP DIALOG (cu Groq + fallback + cache permanent)
 # ============================================================
+
 @st.dialog("Asistentul tău")
 def help_dialog():
     lang = st.session_state.lang
 
     st.markdown("### Alege un subiect pentru explicații")
 
-    # Salvăm topic-ul în session_state
     topic = st.selectbox(
         "Subiect",
         [
@@ -174,15 +174,11 @@ def help_dialog():
         key="help_topic"
     )
 
-    # Butonul doar setează un flag
     if st.button("Trimite", type="primary", key="help_send"):
-        st.session_state.help_answer = help_llm(topic, lang)
+        st.session_state.help_answer = ask_groq(topic)
 
-    # Dacă avem răspuns → îl afișăm
     if "help_answer" in st.session_state:
         st.markdown(f"### Explicație\n{st.session_state.help_answer}")
-
-
 
 # ============================================================
 #  SIDEBAR CONTROLS
