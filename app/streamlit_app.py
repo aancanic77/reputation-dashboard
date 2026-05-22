@@ -135,9 +135,10 @@ if not st.session_state.entered:
 # ============================================================
 #  GLOBAL STYLES
 # ============================================================
-if "_components_styles_loaded" not in st.session_state:
-    st.session_state["_components_styles_loaded"] = True
+if st.session_state.get("_components_styles_loaded") is None:
     render_base_styles()
+    st.session_state["_components_styles_loaded"] = True
+
 
 
 st.markdown(
