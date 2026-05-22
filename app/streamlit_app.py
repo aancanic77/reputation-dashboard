@@ -83,14 +83,17 @@ render_header()
 # ============================================================
 #  HELP DIALOG (Groq direct)
 # ============================================================
-@st.dialog("Asistentul tău")
+# ============================================================
+#  HELP DIALOG (BILINGV)
+# ============================================================
+@st.dialog(t("help_title", st.session_state.lang))
 def help_dialog():
     lang = st.session_state.lang
 
-    st.markdown("### Alege un subiect pentru explicații")
+    st.markdown(f"### {t('help_select_topic', lang)}")
 
     topic = st.selectbox(
-        "Subiect",
+        t("help_topic_label", lang),
         [
             "Dashboard",
             "Logistic Regression",
@@ -103,12 +106,16 @@ def help_dialog():
         key="help_topic"
     )
 
-    if st.button("Trimite", type="primary", key="help_send"):
+    if st.button(t("help_send_button", lang), type="primary", key="help_send"):
         st.session_state.help_answer = ask_groq(topic, lang)
 
     if "help_answer" in st.session_state:
-        st.markdown(f"### Explicație\n{st.session_state.help_answer}")
-
+        st.markdown(
+            f"### {t('help_explanation_label', lang)}\n"
+            f"{st.session_state.help_answer}"
+        )
+    else:
+        st.info(t("help_no_answer", lang))
 
 # ============================================================
 #  SIDEBAR CONTROLS
