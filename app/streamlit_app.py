@@ -135,15 +135,8 @@ if not st.session_state.entered:
 # ============================================================
 #  GLOBAL STYLES
 # ============================================================
-# ============================================================
-#  GLOBAL STYLES
-# ============================================================
-if "_components_styles_loaded" not in st.session_state:
-    render_base_styles()
-    st.session_state["_components_styles_loaded"] = True
-
-
-
+st.session_state["_components_styles_loaded"] = False
+render_base_styles()
 
 st.markdown(
     "<script>document.body.classList.remove('landing-page');</script>",
@@ -186,7 +179,6 @@ def help_dialog():
 # ============================================================
 #  SIDEBAR CONTROLS
 # ============================================================
-
 if st.session_state.show_controls:
     sidebar_values = render_sidebar()
 else:
