@@ -13,52 +13,68 @@ def get_groq_client():
 #  EXPLICAȚII TEHNICE FIXE (fără Groq)
 # ============================================================
 TECHNICAL_TOPICS = {
-    "VADER": {
+    "Logistic Regression": {
         "RO": (
-            "VADER (Valence Aware Dictionary and sEntiment Reasoner) este un algoritm "
-            "lexicon‑based pentru analiză de sentiment. Folosește un lexicon pre‑annotat "
-            "și reguli lingvistice (negări, intensificatori, majuscule, punctuație) pentru "
-            "a ajusta polaritatea. Produce un scor compound între -1 și 1, optimizat pentru "
-            "texte scurte și limbaj informal."
+            "Logistic Regression este un model liniar utilizat pentru clasificarea "
+            "probabilistică a textelor în funcție de polaritatea lor. În analiza "
+            "sentimentului, modelul operează pe baza vectorizării TF‑IDF, care "
+            "transformă textul într-un set de caracteristici numerice. Algoritmul "
+            "învață limite de decizie între clasele Pozitiv, Neutru și Negativ prin "
+            "optimizarea funcției log‑loss. Modelul se remarcă prin interpretabilitate, "
+            "stabilitate și eficiență computațională, fiind adecvat pentru seturi de "
+            "date de dimensiune medie."
         ),
         "EN": (
-            "VADER (Valence Aware Dictionary and sEntiment Reasoner) is a lexicon‑based "
-            "sentiment analysis algorithm. It uses a pre‑annotated lexicon and linguistic "
-            "heuristics (negations, intensifiers, capitalization, punctuation) to adjust "
-            "polarity. It outputs a compound score between -1 and 1, optimized for short, "
-            "informal text."
+            "Logistic Regression is a linear model used for probabilistic text "
+            "classification. In sentiment analysis, it operates on TF‑IDF vectorized "
+            "features, learning decision boundaries between Positive, Neutral, and "
+            "Negative classes through log‑loss optimization. The model is valued for "
+            "its interpretability, stability, and computational efficiency, making it "
+            "suitable for medium‑sized datasets."
         ),
     },
 
-    "Logistic Regression": {
+    "VADER": {
         "RO": (
-            "Logistic Regression este un model liniar de clasificare care folosește "
-            "vectorizarea TF‑IDF pentru a transforma textul în caracteristici numerice. "
-            "Învață limite de decizie între clasele Pozitiv, Neutru și Negativ. Este rapid, "
-            "stabil și interpretabil, potrivit pentru seturi de date moderate."
+            "VADER (Valence Aware Dictionary and sEntiment Reasoner) este un algoritm "
+            "lexicon‑based specializat în analiza sentimentului pentru texte scurte și "
+            "limbaj informal. Acesta utilizează un lexicon pre‑annotat de termeni cu "
+            "polaritate asociată și un set de reguli lingvistice pentru ajustarea "
+            "scorurilor, incluzând tratamentul negărilor, intensificatorilor, "
+            "majusculelor și semnelor de punctuație. Rezultatul final este compound "
+            "score, un scor normalizat în intervalul [-1, 1], care reflectă polaritatea "
+            "globală a textului."
         ),
         "EN": (
-            "Logistic Regression is a linear classification model that uses TF‑IDF "
-            "vectorization to convert text into numerical features. It learns decision "
-            "boundaries between Positive, Neutral, and Negative classes. It is fast, "
-            "stable, and interpretable, suitable for medium‑sized datasets."
+            "VADER (Valence Aware Dictionary and sEntiment Reasoner) is a lexicon‑based "
+            "algorithm designed for sentiment analysis of short and informal text. It "
+            "uses a pre‑annotated lexicon and linguistic rules to adjust polarity, "
+            "including handling of negations, intensifiers, capitalization, and "
+            "punctuation. The final output is the compound score, normalized in the "
+            "range [-1, 1], representing the overall sentiment polarity."
         ),
     },
 
     "Transformer": {
         "RO": (
-            "Modelul Transformer folosește mecanisme de self‑attention pentru a analiza "
-            "contextul global al textului. Poate surprinde relații semantice complexe și "
-            "oferă cea mai mare acuratețe în clasificarea sentimentului."
+            "Arhitectura Transformer se bazează pe mecanisme de self‑attention care "
+            "permit captarea relațiilor semantice dintre termeni indiferent de poziția "
+            "lor în secvență. Această abordare elimină limitările modelelor secvențiale "
+            "tradiționale și permite procesarea paralelă a textului. În analiza "
+            "sentimentului, modelele Transformer oferă performanțe superioare datorită "
+            "capacității lor de a surprinde contextul global și nuanțele lingvistice "
+            "complexe."
         ),
         "EN": (
-            "The Transformer model uses self‑attention mechanisms to analyze the global "
-            "context of text. It captures complex semantic relationships and provides the "
-            "highest accuracy in sentiment classification."
+            "The Transformer architecture relies on self‑attention mechanisms that "
+            "capture semantic relationships between tokens regardless of their position "
+            "in the sequence. This approach removes the constraints of traditional "
+            "sequential models and enables parallel text processing. In sentiment "
+            "analysis, Transformer models achieve superior performance due to their "
+            "ability to model global context and complex linguistic nuances."
         ),
     },
 }
-
 
 # ============================================================
 #  FUNCTIA PRINCIPALĂ
