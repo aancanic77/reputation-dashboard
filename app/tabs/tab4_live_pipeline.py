@@ -1,5 +1,3 @@
-
-
 import time
 from datetime import datetime, timezone
 
@@ -8,7 +6,6 @@ import streamlit as st
 
 from translations import t
 from reddit_pipeline import run_reddit_pipeline_live, DEMO_MODE
-
 
 from sentiment_models import (
     predict_logreg,
@@ -126,35 +123,33 @@ def render_tab4(rows_slider: int, lang: str):
         st.caption(t("tab4_demo_mode_caption", lang))
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ============================
-    # SLIDER
-    # ============================
-    comments_per_company = st.slider(
-        t("tab4_comments_per_company", lang),
-        min_value=10,
-        max_value=40,
-        value=20,
-        step=5,
-    )
-    st.caption(
-        t("tab4_expected_sample_caption", lang).format(count=comments_per_company * 3)
-    )
+    # ============================================================
+    # FORM — slider-ul NU declanșează rerun
+    # ============================================================
+    with st.form("pipeline_form"):
 
-    # ============================
-    # RUN BUTTON
-    # ============================
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(
-        f'<h2 class="section-title">{t("tab4_run_pipeline_title", lang)}</h2>',
-        unsafe_allow_html=True,
-    )
-    run_clicked = st.button(
-        t("tab4_run_button", lang),
-        type="primary",
-        use_container_width=True,
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+        comments_per_company = st.slider(
+            t("tab4_comments_per_company", lang),
+            min_value=10,
+            max_value=40,
+            value=20,
+            step=5,
+        )
 
+        st.caption(
+            t("tab4_expected_sample_caption", lang).format(
+                count=comments_per_company * 3
+            )
+        )
+
+        run_clicked = st.form_submit_button(
+            t("tab4_run_button", lang),
+            type="primary"
+        )
+
+    # ============================================================
+    # STOP dacă nu s-a apăsat RUN
+    # ============================================================
     if not run_clicked:
         st.info(t("tab4_press_button_info", lang))
         return
@@ -282,22 +277,18 @@ def render_tab4(rows_slider: int, lang: str):
         # AUTO-FIX pentru created_utc — normalizează orice format
         # ============================================================
         def fix_created_utc(value):
-            # 1. Numeric → OK
             try:
                 if isinstance(value, (int, float)):
                     return float(value)
             except:
                 pass
-        
-            # 2. String → curățăm
+
             if isinstance(value, str):
                 v = value.strip()
-        
-                # 2a. Numeric în string
+
                 if v.replace(".", "", 1).isdigit():
                     return float(v)
-        
-                # 2b. Dată formatată (detectăm prin '-' și ':')
+
                 if "-" in v and ":" in v:
                     try:
                         dt = pd.to_datetime(v, errors="coerce", utc=True)
@@ -305,31 +296,25 @@ def render_tab4(rows_slider: int, lang: str):
                             return dt.timestamp()
                     except:
                         pass
-        
-                # 2c. Orice alt string → încercăm generic
+
                 try:
                     dt = pd.to_datetime(v, errors="coerce", utc=True)
                     if pd.notnull(dt):
                         return dt.timestamp()
                 except:
                     pass
-        
-            # 3. datetime
+
             if isinstance(value, datetime):
                 return value.replace(tzinfo=timezone.utc).timestamp()
-        
-            # 4. fallback
-            return float("nan")
 
+            return float("nan")
 
         final_df["created_utc"] = final_df["created_utc"].apply(fix_created_utc)
 
-        # dată frumoasă
         final_df["created_at"] = pd.to_datetime(
             final_df["created_utc"], unit="s", errors="coerce"
         ).dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        # timp relativ
         final_df["time_ago"] = final_df["created_utc"].apply(time_ago)
 
         steps[4]["status"] = "Completed"
@@ -398,7 +383,6 @@ def render_tab4(rows_slider: int, lang: str):
     # ============================
     st.markdown(f"### {t('tab4_sample_comments', lang)}")
 
-    # sortăm comentariile după cele mai recente
     final_df = final_df.sort_values("created_utc", ascending=False)
 
     preview_cols = [
