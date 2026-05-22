@@ -104,7 +104,7 @@ def help_dialog():
     )
 
     if st.button("Trimite", type="primary", key="help_send"):
-        st.session_state.help_answer = ask_groq(topic)
+        st.session_state.help_answer = ask_groq(topic, lang)
 
     if "help_answer" in st.session_state:
         st.markdown(f"### Explicație\n{st.session_state.help_answer}")
