@@ -135,8 +135,10 @@ if not st.session_state.entered:
 # ============================================================
 #  GLOBAL STYLES
 # ============================================================
-st.session_state["_components_styles_loaded"] = False
-render_base_styles()
+if "_components_styles_loaded" not in st.session_state:
+    st.session_state["_components_styles_loaded"] = True
+    render_base_styles()
+
 
 st.markdown(
     "<script>document.body.classList.remove('landing-page');</script>",
