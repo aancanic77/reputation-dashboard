@@ -3,12 +3,16 @@ from translations import t
 
 def render_sidebar() -> dict:
     state = st.session_state
+
+    # ============================
+    # LIMBA CURENTĂ
+    # ============================
     lang = state.get("lang", "RO")
 
     st.sidebar.title(t("sidebar_title", lang))
 
     # ============================
-    # LANGUAGE
+    # SELECTOR LIMBĂ
     # ============================
     new_lang = st.sidebar.radio(
         t("sidebar_language_selector", lang),
@@ -18,7 +22,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # SENTIMENT METHOD
+    # METODĂ SENTIMENT
     # ============================
     method = st.sidebar.radio(
         t("sidebar_method", new_lang),
@@ -31,7 +35,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # COMPANY
+    # SELECTOR COMPANIE
     # ============================
     company = st.sidebar.selectbox(
         t("sidebar_company", new_lang),
@@ -40,7 +44,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # ROWS
+    # SLIDER NUMĂR RÂNDURI
     # ============================
     rows_slider = st.sidebar.slider(
         t("sidebar_rows_slider", new_lang),
@@ -51,7 +55,7 @@ def render_sidebar() -> dict:
     )
 
     # ============================
-    # LIMIT ROWS
+    # SLIDER LIMITĂ RÂNDURI
     # ============================
     dashboard_limit_rows = st.sidebar.slider(
         t("sidebar_limit_rows", new_lang),
