@@ -76,6 +76,8 @@ st.markdown(
 #  GLOBAL HEADER
 # ============================================================
 render_header()
+# DEBUG — afișăm cheia din secrets
+st.error(f"CHEIA DIN SECRETS: {st.secrets.get('GROQ_API_KEY')}")
 
 
 # ============================================================
