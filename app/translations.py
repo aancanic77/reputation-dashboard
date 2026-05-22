@@ -352,6 +352,30 @@ translations = {
     "en": "These examples highlight posts where the two methods produce different sentiment labels.",
     "ro": "Aceste exemple evidențiază postările unde cele două metode produc etichete de sentiment diferite."
 },
+"help_title": {
+    "ro": "Asistentul tău",
+    "en": "Your Assistant",
+},
+"help_select_topic": {
+    "ro": "Alege un subiect pentru explicații",
+    "en": "Choose a topic for explanation",
+},
+"help_topic_label": {
+    "ro": "Subiect",
+    "en": "Topic",
+},
+"help_explanation_label": {
+    "ro": "Explicație",
+    "en": "Explanation",
+},
+"help_send_button": {
+    "ro": "Trimite",
+    "en": "Send",
+},
+"help_placeholder": {
+    "ro": "Exemplu: VADER, Logistic Regression, Dashboard",
+    "en": "Example: VADER, Logistic Regression, Dashboard",
+},
 
 }
 
