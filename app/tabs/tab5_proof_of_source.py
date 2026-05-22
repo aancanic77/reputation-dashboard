@@ -53,11 +53,17 @@ def render_tab5(base_df: pd.DataFrame, rows_slider: int):
     st.markdown('</div>', unsafe_allow_html=True)
 
     # ============================
-    # ROWS PER PAGE (INSIDE TAB)
+    # ROWS PER PAGE — INDEPENDENT DE SIDEBAR
     # ============================
+    if "tab5_rows_per_page" not in st.session_state:
+        st.session_state.tab5_rows_per_page = 10  # default REAL, nu 50
+
     rows_per_page = st.slider(
         t("tab5_rows_per_page", lang),
-        10, 200, rows_slider
+        min_value=10,
+        max_value=200,
+        value=st.session_state.tab5_rows_per_page,
+        key="tab5_rows_per_page"
     )
 
     # ============================
