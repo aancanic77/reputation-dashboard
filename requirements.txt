@@ -13,9 +13,14 @@ matplotlib==3.7.2
 seaborn==0.12.2
 
 groq
-transformers
-torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu
-sentencepiece
+transformers==4.37.2
+sentencepiece>=0.1.99
+tokenizers>=0.15.0
+
+torch==2.2.0+cpu
+torchvision==0.17.0+cpu
+torchaudio==2.2.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 
 langchain-core==0.1.53
 langchain-groq==0.1.3
