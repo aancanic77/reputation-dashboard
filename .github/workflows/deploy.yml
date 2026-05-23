@@ -22,8 +22,6 @@ jobs:
             echo "TOKEN ESTE PREZENT"
           fi
 
-
-
       - name: Clone Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF }}
@@ -39,4 +37,3 @@ jobs:
           git add .
           git commit -m "Auto deploy from GitHub" || true
           git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04.git
-
