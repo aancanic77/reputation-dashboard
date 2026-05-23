@@ -2,7 +2,7 @@ name: Deploy to Hugging Face Space
 
 on:
   push:
-    branches: [ "hugging_space" ]
+    branches: [ "main", "hugging_space" ]
 
 jobs:
   deploy:
