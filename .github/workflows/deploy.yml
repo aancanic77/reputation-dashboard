@@ -29,8 +29,14 @@ jobs:
           HF_TOKEN: ${{ secrets.HF }}
         run: |
           git clone https://huggingface.co/spaces/aancanic77/dashboard04.git hfspace
-          cp -r * hfspace/ || true
+
+          rsync -av --exclude=hfspace --exclude=.git ./ hfspace/
+
           cd hfspace
+          git config user.email "anca.atodiresei@gmail.com"
+          git config user.name "aancanic77"
+
           git add .
           git commit -m "Auto deploy from GitHub" || true
           git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04.git
+
