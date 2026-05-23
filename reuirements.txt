@@ -1,0 +1,26 @@
+streamlit==1.32.0
+pandas==2.3.3
+numpy==1.26.4
+scikit-learn==1.3.2
+vaderSentiment==3.3.2
+python-dotenv==1.2.2
+psycopg[binary]==3.1.18
+
+requests==2.31.0
+nltk==3.9.4
+joblib==1.5.3
+
+matplotlib==3.4.3
+seaborn==0.11.2
+
+groq
+transformers==4.37.2
+sentencepiece>=0.1.99
+tokenizers>=0.15.0
+
+torch==2.2.0+cpu
+
+langchain-core==0.1.53
+langchain-groq==0.1.3
+
+--extra-index-url https://download.pytorch.org/whl/cpu
