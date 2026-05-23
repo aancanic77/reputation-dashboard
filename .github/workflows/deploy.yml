@@ -26,6 +26,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF }}
         run: |
+          rm -rf hfspace
           git clone https://huggingface.co/spaces/aancanic77/dashboard04.git hfspace
 
           rsync -av --exclude=hfspace --exclude=.git ./ hfspace/
@@ -37,3 +38,4 @@ jobs:
           git add .
           git commit -m "Auto deploy from GitHub" || true
           git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04.git
+
