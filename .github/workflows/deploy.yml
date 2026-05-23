@@ -19,6 +19,8 @@ jobs:
           git config --global user.name "aancanic77"
 
       - name: Clone Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF }}   
         run: |
           git clone https://huggingface.co/spaces/aancanic77/dashboard04 hfspace
           cp -r * hfspace/ || true
@@ -26,5 +28,4 @@ jobs:
           git add .
           git commit -m "Auto deploy from GitHub" || true
           git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04
-        env:
-          HF_TOKEN: ${{ secrets.HF }}
+
