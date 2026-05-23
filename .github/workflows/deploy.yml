@@ -21,9 +21,9 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF }}
         run: |
-          git clone https://huggingface.co/spaces/aancanic77/dashboard04 hfspace
+          git clone https://huggingface.co/spaces/aancanic77/dashboard04.git hfspace
           cp -r * hfspace/ || true
           cd hfspace
           git add .
           git commit -m "Auto deploy from GitHub" || true
-          git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04
+          git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04.git
