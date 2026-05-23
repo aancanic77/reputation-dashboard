@@ -1,1 +1,36 @@
+name: Deploy to Hugging Face Space
 
+on:
+  push:
+    branches: [ "hugging_space" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Debug secret
+        env:
+          HF_TOKEN: ${{ secrets.HF }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "TOKEN ESTE GOL"
+          else
+            echo "TOKEN ESTE PREZENT"
+          fi
+
+
+
+      - name: Clone Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF }}
+        run: |
+          git clone https://huggingface.co/spaces/aancanic77/dashboard04.git hfspace
+          cp -r * hfspace/ || true
+          cd hfspace
+          git add .
+          git commit -m "Auto deploy from GitHub" || true
+          git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04.git
