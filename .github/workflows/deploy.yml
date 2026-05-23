@@ -15,8 +15,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.email "anca@example.com"
-          git config --global user.name "Anca"
+          git config --global user.email "aancanic77@yahoo.com"
+          git config --global user.name "aancanic77"
 
       - name: Clone Hugging Face Space
         run: |
