@@ -1,0 +1,29 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: [ "hugging_space" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "anca@example.com"
+          git config --global user.name "Anca"
+
+      - name: Clone Hugging Face Space
+        run: |
+          git clone https://huggingface.co/spaces/aancanic77/dashboard01 hfspace
+          cp -r * hfspace/ || true
+          cd hfspace
+          git add .
+          git commit -m "Auto deploy from GitHub" || true
+          git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard01
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
