@@ -1,6 +1,5 @@
 name: Deploy to Hugging Face Space
 
-
 on:
   push:
     branches: [ "hugging_space" ]
@@ -20,7 +19,7 @@ jobs:
 
       - name: Clone Hugging Face Space
         env:
-          HF_TOKEN: ${{ secrets.HF }}   
+          HF_TOKEN: ${{ secrets.HF }}
         run: |
           git clone https://huggingface.co/spaces/aancanic77/dashboard04 hfspace
           cp -r * hfspace/ || true
@@ -28,4 +27,3 @@ jobs:
           git add .
           git commit -m "Auto deploy from GitHub" || true
           git push https://$HF_TOKEN@huggingface.co/spaces/aancanic77/dashboard04
-
