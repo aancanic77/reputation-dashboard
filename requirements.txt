@@ -9,8 +9,10 @@ psycopg[binary]==3.1.18
 requests==2.31.0
 nltk==3.9.4
 joblib==1.5.3
-matplotlib==3.5.3
-seaborn==0.12.2
+
+# FIX pentru Streamlit Cloud
+matplotlib==3.4.3
+seaborn==0.11.2
 
 groq
 transformers==4.37.2
