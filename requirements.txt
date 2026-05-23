@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 streamlit==1.32.0
 pandas==2.3.3
 numpy==1.26.4
@@ -10,7 +12,6 @@ requests==2.31.0
 nltk==3.9.4
 joblib==1.5.3
 
-# FIX pentru Streamlit Cloud
 matplotlib==3.4.3
 seaborn==0.11.2
 
@@ -20,7 +21,6 @@ sentencepiece>=0.1.99
 tokenizers>=0.15.0
 
 torch==2.2.0+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
 
 langchain-core==0.1.53
 langchain-groq==0.1.3
